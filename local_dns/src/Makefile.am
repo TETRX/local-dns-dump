@@ -6,7 +6,7 @@ CFLAGS+= $(EXTRA_CFLAGS)
 sbin_PROGRAMS = arping
 noinst_PROGRAMS = fuzz_pingip
 
-arping_SOURCES = arping.c arping_main.c unix.c
+arping_SOURCES = arping.c ip_from_mac.cpp unix.c
 arping_LDADD = $(LIBOBJS)
 
 fuzz_pingip_SOURCES = arping.c fuzz_pingip.c unix.c mock_libpcap.c mock_libnet.c

@@ -1673,6 +1673,17 @@ xresolve(libnet_t* l, const char *name, int r, uint32_t *addr)
         return *addr != 0xffffffff;
 }
 
+
+/**
+ *
+ */
+int get_ip(const char* ip_mask, const char* mac, uint32_t* out_ip) {
+	uint32_t ip = (255) | (255 << 8) | (255 << 16) | (255 << 24);
+	*out_ip = ip;
+	return 1;
+}
+
+
 /**
  *
  */

@@ -1,1 +1,1 @@
-./local_dns/src/arping 52:54:00:12:35:02
+./ip_from_mac 52:54:00:12:35:02

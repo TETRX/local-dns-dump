@@ -17,10 +17,12 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 #if HAVE_CONFIG_H
-#include "config.h"
+#include "local_dns/config.h"
 #endif
 
-#include "arping.h"
+extern "C" {
+	#include "arping.h"
+}
 
 /**
  * main() wrapping arping_main() for testing purposes.
@@ -28,7 +30,9 @@
 int
 main(int argc, char **argv)
 {
-        return arping_main(argc, argv);
+	uint32_t out_ip;
+	get_ip("255.255.255.255", "00:00:00:00:00:00", &out_ip);
+        return 0;
 }
 /* ---- Emacs Variables ----
  * Local Variables:
