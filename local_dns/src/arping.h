@@ -25,6 +25,8 @@
 #include <inttypes.h>
 #endif
 
+
+
 /* Forward declarations */
 struct pcap_pkthdr;
 
@@ -37,11 +39,10 @@ extern unsigned int numsent;
 const char *
 arping_lookupdev(uint32_t srcip, uint32_t dstip, char *ebuf);
 void do_signal_init();
-void do_libnet_init(const char *ifname, int recursive);
 void sigint(int);
 const char *arping_lookupdev_default(uint32_t srcip, uint32_t dstip,
 				     char *ebuf);
-int get_ip(const char*, const char*, uint32_t*);
+//int get_ip(const char*, const char*, uint32_t*);
 int arping_main(int argc, char **argv);
 
 

@@ -96,7 +96,7 @@ arping.o: arping.c /usr/include/stdc-predef.h ../config.h \
  /usr/include/pcap/pcap.h /usr/include/pcap/funcattrs.h \
  /usr/include/pcap/compiler-tests.h /usr/include/pcap/pcap-inttypes.h \
  /usr/include/pcap/socket.h /usr/include/pcap/bpf.h \
- /usr/include/pcap/dlt.h arping.h
+ /usr/include/pcap/dlt.h arping.h arping_init.h
 /usr/include/stdc-predef.h:
 ../config.h:
 /usr/include/stdio.h:
@@ -287,3 +287,4 @@ arping.o: arping.c /usr/include/stdc-predef.h ../config.h \
 /usr/include/pcap/bpf.h:
 /usr/include/pcap/dlt.h:
 arping.h:
+arping_init.h:

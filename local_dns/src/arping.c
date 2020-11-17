@@ -115,6 +115,7 @@
 #include <pcap.h>
 
 #include "arping.h"
+#include "arping_init.h"
 
 #ifndef ETH_ALEN
 #define ETH_ALEN 6
@@ -218,6 +219,20 @@ int verbose = 0;  /* Increase with -v */
 
 /* Doesn't really need to be volatile, but doesn't hurt. */
 static volatile sig_atomic_t time_to_die = 0;
+
+
+struct arping_request {
+	struct arping_context * context;
+	uint32_t srcip;
+	uint32_t dstip;
+	uint8_t srcmac[ETH_ALEN];
+	uint8_t dstmac[ETH_ALEN];
+	uint32_t out_ip;
+
+	struct timespec lastpacketsent;
+	volatile sig_atomic_t/*bool*/ time_to_die;
+};
+
 
 static ssize_t
 xgetrandom(void *buf, const size_t buflen, const unsigned int flags)
@@ -629,22 +644,22 @@ strip_newline(char* s) {
  * Call with recursive=0.
  */
 void
-do_libnet_init(const char *ifname, int recursive)
+do_libnet_init(struct arping_context *context, const char *ifname, int recursive)
 {
 	char ebuf[LIBNET_ERRBUF_SIZE];
         ebuf[0] = 0;
 	if (verbose > 1) {
                 printf("arping: libnet_init(%s)\n", ifname ? ifname : "<null>");
 	}
-	if (libnet) {
+	if (context->libnet) {
 		/* Probably going to switch interface from temp to real. */
-		libnet_destroy(libnet);
-		libnet = 0;
+		libnet_destroy(context->libnet);
+		context->libnet = 0;
 	}
 
         /* Try libnet_init() even though we aren't root. We may have
          * a capability or something. */
-	if (!(libnet = libnet_init(LIBNET_LINK,
+	if (!(context->libnet = libnet_init(LIBNET_LINK,
 				   (char*)ifname,
 				   ebuf))) {
                 strip_newline(ebuf);
@@ -652,8 +667,8 @@ do_libnet_init(const char *ifname, int recursive)
                         /* Sometimes libnet guesses an interface that it then
                          * can't use. Work around that by attempting to
                          * use "lo". */
-                        do_libnet_init("lo", 1);
-                        if (libnet != NULL) {
+                        do_libnet_init(context, "lo", 1);
+                        if (context->libnet != NULL) {
                                 return;
                         }
                 } else if (recursive) {
@@ -686,7 +701,7 @@ sigint(int i)
  * idiot-proof clock_gettime() wrapper
  */
 static void
-getclock(struct timespec *ts)
+getclock(struct timespec *ts, volatile sig_atomic_t *flag)
 {
 #if HAVE_CLOCK_MONOTONIC
         static int clock_gettime_failed = 0;
@@ -703,7 +718,7 @@ getclock(struct timespec *ts)
         if (-1 == gettimeofday(&tv, NULL)) {
                 fprintf(stderr, "arping: gettimeofday(): %s\n",
                         strerror(errno));
-                sigint(0);
+                *flag = 1;
         }
         ts->tv_sec = tv.tv_sec;
         ts->tv_nsec = tv.tv_usec * 1000;
@@ -938,7 +953,7 @@ timespec2dbl(const struct timespec *tv)
  * return number of microseconds to wait for packets.
  */
 static uint32_t
-wait_time(double deadline, uint32_t packetwait)
+wait_time(struct arping_request *r, double deadline, uint32_t packetwait)
 {
         struct timespec ts;
 
@@ -947,7 +962,7 @@ wait_time(double deadline, uint32_t packetwait)
                 return packetwait;
         }
 
-        getclock(&ts);
+        getclock(&(r->lastpacketsent), &(r->time_to_die));
         const double max_wait = deadline - timespec2dbl(&ts);
         if (max_wait < 0) {
                 return 0;
@@ -1005,7 +1020,7 @@ static char *ts2str(const struct timespec *tv, const struct timespec *tv2,
  * \param seq     Ping seq
  */
 static void
-pingmac_send(uint16_t id, uint16_t seq)
+pingmac_send(struct arping_request* request, uint16_t id, uint16_t seq)
 {
 	static libnet_ptag_t icmp = 0, ipv4 = 0,eth=0;
 
@@ -1013,15 +1028,15 @@ pingmac_send(uint16_t id, uint16_t seq)
         // Without this padding some systems (e.g. Raspberry Pi 3
         // wireless interface) failed. dmesg said:
         //   arping: packet size is too short (42 <= 50)
-        const size_t padding_size = sizeof(struct timespec) + payload_suffix_size;
+        const size_t padding_size = sizeof(struct timespec) + request->context->payload_suffix_size;
         uint8_t padding[padding_size];
         memset(padding, 0, padding_size);
         {
                 struct timespec ts;
-                getclock(&ts);
+                getclock(&ts, &time_to_die);
                 memcpy(padding, &ts, sizeof(struct timespec));
                 memcpy(&padding[sizeof(struct timespec)],
-                       payload_suffix, payload_suffix_size);
+                       request->context->payload_suffix, request->context->payload_suffix_size);
         }
 
 	int c;
@@ -1033,11 +1048,12 @@ pingmac_send(uint16_t id, uint16_t seq)
 						   seq, /* seq */
 						   (uint8_t*)padding, /* payload */
 						   sizeof padding, /* payload len */
-						   libnet,
+						   request->context->libnet,
 						   icmp))) {
 		fprintf(stderr, "libnet_build_icmpv4_echo(): %s\n",
-			libnet_geterror(libnet));
-		sigint(0);
+			libnet_geterror(request->context->libnet));
+		//sigint(0);
+		request->time_to_die = 1;
 	}
 
 	if (-1==(ipv4 = libnet_build_ipv4(LIBNET_IPV4_H
@@ -1049,19 +1065,20 @@ pingmac_send(uint16_t id, uint16_t seq)
 					  64, /* ttl */
 					  IPPROTO_ICMP,
 					  0, /* checksum */
-					  srcip,
-					  dstip,
+					  request->srcip,
+					  request->dstip,
 					  NULL, /* payload */
 					  0,
-					  libnet,
+					  request->context->libnet,
 					  ipv4))) {
 		fprintf(stderr, "libnet_build_ipv4(): %s\n",
-			libnet_geterror(libnet));
-		sigint(0);
+			libnet_geterror(request->context->libnet));
+		//sigint(0);
+		request->time_to_die = 1;
 	}
 	if (vlan_tag >= 0) {
-                eth = libnet_build_802_1q(dstmac,
-                                          srcmac,
+                eth = libnet_build_802_1q(request->dstmac,
+                                          request->srcmac,
                                           ETHERTYPE_VLAN,
                                           vlan_prio,
                                           0, // cfi
@@ -1069,36 +1086,38 @@ pingmac_send(uint16_t id, uint16_t seq)
                                           ETHERTYPE_IP,
                                           NULL, // payload
                                           0, // payload length
-                                          libnet,
+                                          request->context->libnet,
                                           eth);
         } else {
-                eth = libnet_build_ethernet(dstmac,
-                                            srcmac,
+                eth = libnet_build_ethernet(request->dstmac,
+                                            request->srcmac,
                                             ETHERTYPE_IP,
                                             NULL, // payload
                                             0, // payload length
-                                            libnet,
+                                            request->context->libnet,
                                             eth);
         }
         if (-1 == eth) {
                 fprintf(stderr, "arping: %s: %s\n",
                         (vlan_tag >= 0) ? "libnet_build_802_1q()" :
                         "libnet_build_ethernet()",
-                        libnet_geterror(libnet));
-                sigint(0);
+                        libnet_geterror(request->context->libnet));
+                //sigint(0);
+		request->time_to_die = 1;
         }
 	if (verbose > 1) {
-                getclock(&lastpacketsent);
+                getclock(&(request->lastpacketsent), &(request->time_to_die));
                 printf("arping: sending packet at time %ld.%09ld\n",
-                       (long)lastpacketsent.tv_sec,
-                       (long)lastpacketsent.tv_nsec);
+                       (long)request->lastpacketsent.tv_sec,
+                       (long)request->lastpacketsent.tv_nsec);
 	}
-	if (-1 == (c = libnet_write(libnet))) {
+	if (-1 == (c = libnet_write(request->context->libnet))) {
 		fprintf(stderr, "arping: libnet_write(): %s\n",
-			libnet_geterror(libnet));
-		sigint(0);
+			libnet_geterror(request->context->libnet));
+		//sigint(0);
+		request->time_to_die = 1;
 	}
-        getclock(&lastpacketsent);
+        getclock(&(request->lastpacketsent), &(request->time_to_die));
 	numsent++;
 }
 
@@ -1163,7 +1182,7 @@ pingip_send()
 		sigint(0);
 	}
 	if (verbose > 1) {
-                getclock(&lastpacketsent);
+                getclock(&lastpacketsent, &time_to_die);
                 printf("arping: sending packet at time %ld.%09ld\n",
                        (long)lastpacketsent.tv_sec,
                        (long)lastpacketsent.tv_nsec);
@@ -1173,7 +1192,7 @@ pingip_send()
 			libnet_geterror(libnet));
 		sigint(0);
 	}
-        getclock(&lastpacketsent);
+        getclock(&lastpacketsent, &time_to_die);
 	numsent++;
 }
 
@@ -1196,7 +1215,7 @@ pingip_recv(const char *unused, struct pcap_pkthdr *h, const char * const packet
 		printf("arping: received response for IP ping\n");
 	}
 
-        getclock(&arrival);
+        getclock(&arrival, &time_to_die);
 
 	if (vlan_tag >= 0) {
 		veth = (void*)packet;
@@ -1374,7 +1393,7 @@ pingmac_recv(const char* unused, struct pcap_pkthdr *h, uint8_t *packet)
 		printf("arping: received response for mac ping\n");
 	}
 
-        getclock(&arrival);
+        getclock(&arrival, &time_to_die);
 
         if (vlan_tag >= 0) {
                 veth = (void*)packet;
@@ -1510,8 +1529,9 @@ pingmac_recv(const char* unused, struct pcap_pkthdr *h, uint8_t *packet)
 }
 
 void
-pingmac_recv_api(char* out_ip, struct pcap_pkthdr *h, uint8_t *packet)
+pingmac_recv_api(char* r, struct pcap_pkthdr *h, uint8_t *packet)
 {
+	struct arping_request* request = ((struct arping_request*)r);
         const unsigned char *pkt_dstmac;
         const unsigned char *pkt_srcmac;
         const struct libnet_802_1q_hdr *veth;
@@ -1519,13 +1539,12 @@ pingmac_recv_api(char* out_ip, struct pcap_pkthdr *h, uint8_t *packet)
 	struct libnet_ipv4_hdr *hip;
 	struct libnet_icmpv4_hdr *hicmp;
         struct timespec arrival;
-        UNUSED(out_ip);
 
 	if(verbose>2) {
 		printf("arping: received response for mac ping\n");
 	}
 
-        getclock(&arrival);
+        getclock(&arrival, &(request->time_to_die));
 
         if (vlan_tag >= 0) {
                 veth = (void*)packet;
@@ -1542,8 +1561,8 @@ pingmac_recv_api(char* out_ip, struct pcap_pkthdr *h, uint8_t *packet)
         }
 
         // Dest MAC must be me.
-        if (memcmp(pkt_dstmac, srcmac, ETH_ALEN)) {
-                return;
+        if (memcmp(pkt_dstmac, request->srcmac, ETH_ALEN)) {
+		return;
         }
 
         if (verbose > 3) {
@@ -1551,8 +1570,8 @@ pingmac_recv_api(char* out_ip, struct pcap_pkthdr *h, uint8_t *packet)
         }
 
         // Source MAC must match, if set.
-        if (memcmp(dstmac, ethxmas, ETH_ALEN)) {
-                if (memcmp(pkt_srcmac, dstmac, ETH_ALEN)) {
+        if (memcmp(request->dstmac, ethxmas, ETH_ALEN)) {
+                if (memcmp(pkt_srcmac, request->dstmac, ETH_ALEN)) {
                         return;
                 }
         }
@@ -1565,7 +1584,7 @@ pingmac_recv_api(char* out_ip, struct pcap_pkthdr *h, uint8_t *packet)
         if (addr_must_be_same) {
                 uint32_t tmp;
                 memcpy(&tmp, &hip->ip_src, 4);
-                if (dstip != tmp) {
+                if (request->dstip != tmp) {
                         return;
                 }
         }
@@ -1597,7 +1616,7 @@ pingmac_recv_api(char* out_ip, struct pcap_pkthdr *h, uint8_t *packet)
         if (payload_size < 0) {
                 return;
         }
-        if (payload_size < sizeof(struct timespec) + payload_suffix_size) {
+        if (payload_size < sizeof(struct timespec) + request->context->payload_suffix_size) {
                 return;
         }
         if (verbose > 3) {
@@ -1605,14 +1624,14 @@ pingmac_recv_api(char* out_ip, struct pcap_pkthdr *h, uint8_t *packet)
                        payload_size);
         }
         if (memcmp(&payload[sizeof(struct timespec)],
-                    payload_suffix, payload_suffix_size)) {
+                    request->context->payload_suffix, request->context->payload_suffix_size)) {
                     return;
         }
         if (verbose > 3) {
                 printf("arping: ... correct payload suffix\n");
         }
 
-        update_stats(timespec2dbl(&arrival) - timespec2dbl(&lastpacketsent));
+        update_stats(timespec2dbl(&arrival) - timespec2dbl(&(request->lastpacketsent)));
         if (beep) {
                 printf("\a");
         }
@@ -1629,7 +1648,7 @@ pingmac_recv_api(char* out_ip, struct pcap_pkthdr *h, uint8_t *packet)
                        libnet_addr2name4(*(int*)&hip->ip_src, 0),
                        format_mac(pkt_srcmac, buf, sizeof(buf)),
                        htons(hicmp->icmp_seq),
-                       ts2str(&lastpacketsent, &arrival, buf2, sizeof(buf2)));
+                       ts2str(&(request->lastpacketsent), &arrival, buf2, sizeof(buf2)));
                 break;
         case RAW:
                 printf("%s", libnet_addr2name4(hip->ip_src.s_addr, 0));
@@ -1659,7 +1678,7 @@ pingmac_recv_api(char* out_ip, struct pcap_pkthdr *h, uint8_t *packet)
                 sigint(0);
         }
 
-	*((uint32_t*)out_ip) = *(uint32_t*)&hip->ip_src;
+	request->out_ip = *(uint32_t*)&hip->ip_src;
 }
 
 
@@ -1693,7 +1712,7 @@ ping_recv(pcap_t *pcap, uint32_t packetwait, pcap_handler func)
                printf("arping: receiving packets...\n");
        }
 
-       getclock(&ts);
+       getclock(&ts, &time_to_die);
        endtime.tv_sec = ts.tv_sec + (packetwait / 1000000);
        endtime.tv_nsec = ts.tv_nsec + 1000 * (packetwait % 1000000);
        fixup_timespec(&endtime);
@@ -1709,7 +1728,7 @@ ping_recv(pcap_t *pcap, uint32_t packetwait, pcap_handler func)
        for (;!done;) {
 	       int trydispatch = 0;
 
-	       getclock(&ts);
+	       getclock(&ts, &time_to_die);
 	       ts.tv_sec = endtime.tv_sec - ts.tv_sec;
 	       ts.tv_nsec = endtime.tv_nsec - ts.tv_nsec;
 	       fixup_timespec(&ts);
@@ -1819,8 +1838,8 @@ ping_recv(pcap_t *pcap, uint32_t packetwait, pcap_handler func)
 /**
  * try to receive a packet for 'packetwait' microseconds
  */
-static uint32_t
-ping_recv_api(pcap_t *pcap, uint32_t packetwait, pcap_handler func)
+static char /*bool*/
+ping_recv_api(struct arping_request *request, pcap_t *pcap, uint32_t packetwait, pcap_handler func)
 {
        struct timespec ts;
        struct timespec endtime;
@@ -1832,7 +1851,7 @@ ping_recv_api(pcap_t *pcap, uint32_t packetwait, pcap_handler func)
                printf("arping: receiving packets...\n");
        }
 
-       getclock(&ts);
+       getclock(&ts, &(request->time_to_die));
        endtime.tv_sec = ts.tv_sec + (packetwait / 1000000);
        endtime.tv_nsec = ts.tv_nsec + 1000 * (packetwait % 1000000);
        fixup_timespec(&endtime);
@@ -1848,7 +1867,7 @@ ping_recv_api(pcap_t *pcap, uint32_t packetwait, pcap_handler func)
        for (;!done;) {
 	       int trydispatch = 0;
 
-	       getclock(&ts);
+	       getclock(&ts, &(request->time_to_die));
 	       ts.tv_sec = endtime.tv_sec - ts.tv_sec;
 	       ts.tv_nsec = endtime.tv_nsec - ts.tv_nsec;
 	       fixup_timespec(&ts);
@@ -1880,7 +1899,7 @@ ping_recv_api(pcap_t *pcap, uint32_t packetwait, pcap_handler func)
                }
 
                /* check for sigint */
-	       if (time_to_die) {
+	       if (request->time_to_die) {
 		       return 0;
 	       }
 
@@ -1922,7 +1941,8 @@ ping_recv_api(pcap_t *pcap, uint32_t packetwait, pcap_handler func)
 		       case -1: /* error */
 			       if (errno != EINTR) {
 				       done = 1;
-				       sigint(0);
+				       //sigint(0);
+				       request->time_to_die = 1;
 				       fprintf(stderr,
 					       "arping: select() failed: %s\n",
 					       strerror(errno));
@@ -1935,11 +1955,10 @@ ping_recv_api(pcap_t *pcap, uint32_t packetwait, pcap_handler func)
 	       }
 
 	       if (trydispatch) {
-		       uint32_t out_ip;
 		       int ret;
                        if (0 > (ret = pcap_dispatch(pcap, -1,
                                                     func,
-                                                    (char*)&out_ip))) {
+                                                    (char*)request))) {
 			       /* rest, so we don't take 100% CPU... mostly
                                   hmm... does usleep() exist everywhere? */
 			       usleep(1);
@@ -1952,7 +1971,7 @@ ping_recv_api(pcap_t *pcap, uint32_t packetwait, pcap_handler func)
 					       ret);
 			       }
 		       }
-		       return out_ip;
+		       return (request->out_ip > 0);
 	       }
 	       return 0;
        }
@@ -1973,10 +1992,49 @@ xresolve(libnet_t* l, const char *name, int r, uint32_t *addr)
 }
 
 
+int arping_init(struct arping_context * context) {
+	srandom(time(NULL));
+
+	context->libnet = 0;
+	context->payload_suffix_size = 4;
+        context->payload_suffix = malloc(context->payload_suffix_size);
+        if (context->payload_suffix) {
+                const ssize_t rc = xgetrandom(context->payload_suffix, context->payload_suffix_size, 0);
+                if (rc == -1) {
+                        fprintf(stderr,
+                                "arping: failed to get %zd random bytes: %s\n",
+                                context->payload_suffix_size,
+                                strerror(errno));
+                        free(context->payload_suffix);
+                        context->payload_suffix = NULL;
+			return 0;
+                } else if (context->payload_suffix_size != rc) {
+                        fprintf(stderr,
+                                "arping: only got %zd out of %zd bytes for random suffix\n",
+                                rc, context->payload_suffix_size);
+			return 0;
+                }
+        } else {
+                fprintf(stderr, "arping: failed to allocate %zd bytes for payload suffix.\n",
+                        context->payload_suffix_size);
+		return 0;
+        }
+
+        if (!context->payload_suffix) {
+                fprintf(stderr, "arping:  Using constant suffix.\n");
+                context->payload_suffix = "arping";
+                context->payload_suffix_size = strlen(context->payload_suffix);
+        }
+        
+	do_libnet_init(context, NULL/*ifname*/, 0);
+	vlan_prio = 0;
+	return 1;
+}
+
 /**
  *
  */
-int get_ip(const char* ip_mask, const char* mac, uint32_t* out_ip) {
+int get_ip_local(struct arping_context* context, const char* ip_mask, const char* mac, uint32_t* out_ip) {
 	char ebuf[LIBNET_ERRBUF_SIZE + PCAP_ERRBUF_SIZE];
 	char* cp;
 	const char* ifname = NULL; // an option to specify interface
@@ -1989,14 +2047,17 @@ int get_ip(const char* ip_mask, const char* mac, uint32_t* out_ip) {
 	double deadline = -1;
 	char bpf_filter[64];
 	ebuf[0] = 0;
-	srandom(time(NULL));
+	//srandom(time(NULL));
+	struct arping_request request;
 
-	*out_ip = 0;
-	srcip = 0;
-	dstip = 0xffffffff;
-	memcpy(dstmac, ethxmas, ETH_ALEN);
+	request.context = context;
+	request.out_ip = 0;
+	request.srcip = 0;
+	request.dstip = 0xffffffff;
+	request.time_to_die = 0;
+	memcpy(request.dstmac, ethxmas, ETH_ALEN);
 	
-	payload_suffix_size = 4;
+	/*payload_suffix_size = 4;
         payload_suffix = malloc(payload_suffix_size);
         if (payload_suffix) {
                 const ssize_t rc = xgetrandom(payload_suffix, payload_suffix_size, 0);
@@ -2021,17 +2082,17 @@ int get_ip(const char* ip_mask, const char* mac, uint32_t* out_ip) {
                 fprintf(stderr, "arping:  Using constant suffix.\n");
                 payload_suffix = "arping";
                 payload_suffix_size = strlen(payload_suffix);
-        }
+        }*/
 
-        do_libnet_init(ifname, 0);
-        if (!xresolve(libnet, ip_mask, LIBNET_RESOLVE, &dstip)) {
+        //do_libnet_init(context, ifname, 0);
+        if (!xresolve(context->libnet, ip_mask, LIBNET_RESOLVE, &(request.dstip))) {
                 fprintf(stderr,"arping: Can't resolve %s, or "
                         "%s is broadcast. If it is, use -B "
                         "instead of -T\n", ip_mask, ip_mask);
                 exit(1);
         }
         
-        vlan_prio = 0;
+        //vlan_prio = 0;
 
 	if (!is_mac_addr(mac)) {
 		fprintf(stderr, "arping: Options given only apply to "
@@ -2039,17 +2100,16 @@ int get_ip(const char* ip_mask, const char* mac, uint32_t* out_ip) {
 			"argument\n");
 		exit(1);
 	}
-        if (!get_mac_addr(mac, dstmac)) {
+        if (!get_mac_addr(mac, request.dstmac)) {
 		fprintf(stderr, "arping: Illegal mac addr %s\n",
 			mac);
 		return 1;
 	}
 
-	target = mac;
-
 	if (!ifname) {
                 if (!dont_use_arping_lookupdev) {
-                        ifname = arping_lookupdev(srcip, dstip, ebuf);
+			/* WARNING: NON-REENTRANT */
+                        ifname = arping_lookupdev(request.srcip, request.dstip, ebuf);
                         strip_newline(ebuf);
                         if (!ifname) {
                                 fprintf(stderr, "arping: lookup dev: %s\n",
@@ -2057,7 +2117,7 @@ int get_ip(const char* ip_mask, const char* mac, uint32_t* out_ip) {
                         }
                 }
                 if (!ifname) {
-                        ifname = arping_lookupdev_default(srcip, dstip, ebuf);
+                        ifname = arping_lookupdev_default(request.srcip, request.dstip, ebuf);
                         strip_newline(ebuf);
                         if (ifname && !dont_use_arping_lookupdev) {
                                 fprintf(stderr,
@@ -2088,7 +2148,7 @@ int get_ip(const char* ip_mask, const char* mac, uint32_t* out_ip) {
 	 * Init libnet again, because we now know the interface name.
 	 * We should know it by know at least
 	 */
-        do_libnet_init(ifname, 0);
+        do_libnet_init(context, ifname, 0);
 
 	/*
 	 * pcap init
@@ -2135,21 +2195,21 @@ int get_ip(const char* ip_mask, const char* mac, uint32_t* out_ip) {
 	 * final init
 	 */
         {
-		if (!(cp = (char*)libnet_get_hwaddr(libnet))) {
+		if (!(cp = (char*)libnet_get_hwaddr(context->libnet))) {
 			fprintf(stderr, "arping: libnet_get_hwaddr(): %s\n",
-				libnet_geterror(libnet));
+				libnet_geterror(context->libnet));
 			exit(1);
 		}
-		memcpy(srcmac, cp, ETH_ALEN);
+		memcpy(request.srcmac, cp, ETH_ALEN);
 	}
         {
-		if (ip_broadcast_num == (srcip = libnet_get_ipaddr4(libnet))) {
+		if (ip_broadcast_num == (request.srcip = libnet_get_ipaddr4(context->libnet))) {
 			fprintf(stderr,
                                 "arping: Unable to get the IPv4 address of "
                                 "interface %s:\narping: %s"
                                 "arping: "
                                 "Use -S to specify address manually.\n",
-                                ifname, libnet_geterror(libnet));
+                                ifname, libnet_geterror(context->libnet));
 			exit(1);
 		}
 	}
@@ -2162,25 +2222,23 @@ int get_ip(const char* ip_mask, const char* mac, uint32_t* out_ip) {
 	maxcount = 3;
         if (deadline > 0) {
                 struct timespec ts;
-                getclock(&ts);
+                getclock(&ts, &(request.time_to_die));
                 deadline += timespec2dbl(&ts);
         }
 	{
 		int c;
-		for (c = 0; (maxcount < 0 || c < maxcount) && !time_to_die; c++) {
-			pingmac_send(xrandom(), c);
-                        const uint32_t w = wait_time(deadline, packetwait);
+		for (c = 0; (maxcount < 0 || c < maxcount) && !request.time_to_die; c++) {
+			pingmac_send(&request, xrandom(), c);
+                        const uint32_t w = wait_time(&request, deadline, packetwait);
                         if (w == 0) {
                                 break;
                         }
-                        *out_ip = ping_recv_api(pcap, w,  (pcap_handler)pingmac_recv_api);
-			if (*out_ip) {
-				break;
-			}
+                        if (ping_recv_api(&request, pcap, w, (pcap_handler)pingmac_recv_api)) break;
 		}
 	}
 
-	return (*out_ip) > 0;
+	*out_ip = request.out_ip;
+	return (*out_ip > 0);
 }
 
 
@@ -2190,6 +2248,8 @@ int get_ip(const char* ip_mask, const char* mac, uint32_t* out_ip) {
 int
 arping_main(int argc, char **argv)
 {
+	payload_suffix_size = 4;
+#if 0
 	char ebuf[LIBNET_ERRBUF_SIZE + PCAP_ERRBUF_SIZE];
 	char *cp;
         const char *srcip_opt = NULL;
@@ -2247,7 +2307,7 @@ arping_main(int argc, char **argv)
                         payload_suffix_size = strlen(payload_suffix);
                 }
 
-                do_libnet_init(ifname, 0);
+                do_libnet_init(&libnet, ifname, 0);
                 if (!xresolve(libnet, dstip_opt, LIBNET_RESOLVE, &dstip)) {
                         fprintf(stderr,"arping: Can't resolve %s, or "
                                 "%s is broadcast. If it is, use -B "
@@ -2287,7 +2347,7 @@ arping_main(int argc, char **argv)
        	/*
 	 * libnet init (may be done already for resolving)
 	 */
-        do_libnet_init(ifname, 0);
+        do_libnet_init(&libnet, ifname, 0);
 
 	/*
 	 * parse parm into dstmac
@@ -2353,7 +2413,7 @@ arping_main(int argc, char **argv)
 	 * Init libnet again, because we now know the interface name.
 	 * We should know it by know at least
 	 */
-        do_libnet_init(ifname, 0);
+        do_libnet_init(&libnet, ifname, 0);
 
 	/*
 	 * pcap init
@@ -2490,6 +2550,8 @@ arping_main(int argc, char **argv)
         } else {
                 return !numrecvd;
         }
+#endif
+	return 0;
 }
 /* ---- Emacs Variables ----
  * Local Variables:

@@ -20,8 +20,18 @@
 #include "local_dns/config.h"
 #endif
 
+#if HAVE_STDINT_H
+#include <stdint.h>
+#endif
+
+#if HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
+
 extern "C" {
 	#include "arping.h"
+	#include "local_dns/src/arping_init.h"
 }
 
 #include <iostream>
@@ -39,13 +49,17 @@ void ip_addr2values(uint32_t addr, uint8_t * a, uint8_t * b, uint8_t * c, uint8_
 int
 main(int argc, char **argv)
 {
-	uint32_t out_ip;
-	get_ip("10.0.2.2", "52:54:00:12:35:02", &out_ip);
-	std::cout << out_ip << std::endl;
-	uint8_t a, b, c, d;
-	ip_addr2values(out_ip, &a, &b, &c, &d);
-	std::cout << (int)a << "." << (int)b << "." << (int)c << "." << (int)d << std::endl;
-        return 0;
+	struct arping_context context;
+	if (arping_init(&context)) {
+		uint32_t out_ip;
+		get_ip_local(&context, "10.0.2.2", "52:54:00:12:35:02", &out_ip);
+		std::cout << out_ip << std::endl;
+		uint8_t a, b, c, d;
+		ip_addr2values(out_ip, &a, &b, &c, &d);
+		std::cout << (int)a << "." << (int)b << "." << (int)c << "." << (int)d << std::endl;
+        	return 0;
+	}
+	return 1;
 }
 /* ---- Emacs Variables ----
  * Local Variables:
