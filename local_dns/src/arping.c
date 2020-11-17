@@ -2035,6 +2035,8 @@ int arping_init(struct arping_context * context) {
  *
  */
 int get_ip_local(struct arping_context* context, const char* ip_mask, const char* mac, uint32_t* out_ip) {
+	fprintf(stderr, "%d %s %s\n", (context==NULL), ip_mask, mac);
+	
 	char ebuf[LIBNET_ERRBUF_SIZE + PCAP_ERRBUF_SIZE];
 	char* cp;
 	const char* ifname = NULL; // an option to specify interface

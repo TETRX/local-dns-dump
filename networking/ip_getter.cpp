@@ -42,7 +42,7 @@ std::string IPGetter::request_a_lot(std::string mac){
 
 std::string IPGetter::get_ip(std::string mac){
     try{
-        std::string ip=requester->request(local_network_ip_prefix+"255",mac);
+        std::string ip=requester->request(local_network_ip_prefix+"255", mac);
         return ip;
     }
     catch(NoResponseException no_response){

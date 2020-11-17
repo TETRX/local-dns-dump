@@ -1,5 +1,6 @@
 //Abstract class that provides a single method request()
 //Isolates the library-specific part from the abstraction of ip_getter()
+#pragma once
 #include <string> 
 
 class Requester
