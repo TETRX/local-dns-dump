@@ -1,7 +1,11 @@
 // IPGetter isolates the entire local-dns algorithm
+#include <string>
+#include <map>
+#include <utility>
+#include <future>
+
 #include "requester.h"
 #include "replier.h"
-#include <string>
 
 class IPGetter
 {
@@ -17,7 +21,7 @@ private:
     int timeout; //in miliseconds
 
     void request_a_lot(std::string mac);
-    std::string request_a_lot_single(std::string mac); // (temp) single-thread brute-force
+    void request_a_lot_single(std::string mac); // (temp) single-thread brute-force
 
     std::string wait_for_promise(std::promise<std::string>& promise);
 public:

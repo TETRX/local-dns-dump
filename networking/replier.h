@@ -4,6 +4,7 @@
 #include <map>
 #include <thread>
 #include <future>
+
 #include "listener.h"
 
 class Replier
@@ -14,7 +15,6 @@ class Replier
         Listener* listener;
     public:
         void reply();
-        Replier(std::map<std::string, std::promise<std::string>*>* map1,std::mutex& map_lock1,Listener* listener1): map(map1),map_lock(map_lock1){
-            listener=listener;
+        Replier(std::map<std::string, std::promise<std::string>*>* map1, std::mutex& map_lock1, Listener* listener1): map(map1), map_lock(map_lock1), listener(listener1) {
         }
 };

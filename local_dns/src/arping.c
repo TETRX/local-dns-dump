@@ -1035,7 +1035,8 @@ static char *ts2str(const struct timespec *tv, const struct timespec *tv2,
 static void
 pingmac_send(struct arping_request* request, uint16_t id, uint16_t seq)
 {
-	static libnet_ptag_t icmp = 0, ipv4 = 0,eth=0;
+	//TODO: consider reconstructing protocol blocks only when libnet reinits only when ifname changes
+	/*static*/ libnet_ptag_t icmp = 0, ipv4 = 0,eth=0;
 
         // Padding size chosen fairly arbitrarily.
         // Without this padding some systems (e.g. Raspberry Pi 3
@@ -1710,6 +1711,7 @@ arping_pcap_recv(char* d, struct pcap_pkthdr *h, uint8_t *packet)
 		printf("arping: received response for mac ping\n");
 	}
 
+	//TODO: handle vlan_tag
         if (vlan_tag >= 0) {
                 veth = (void*)packet;
                 hip = (void*)((char*)veth + LIBNET_802_1Q_H);
@@ -1810,7 +1812,7 @@ arping_pcap_recv(char* d, struct pcap_pkthdr *h, uint8_t *packet)
                        libnet_addr2name4(*(int*)&hip->ip_src, 0),
                        format_mac(pkt_srcmac, buf, sizeof(buf)),
                        htons(hicmp->icmp_seq),
-                       ts2str(&(request->lastpacketsent), &arrival, buf2, sizeof(buf2)));
+                       ts2str(&lastpacketsent, &arrival, buf2, sizeof(buf2)));
                 break;
         case RAW:
                 printf("%s", libnet_addr2name4(hip->ip_src.s_addr, 0));
@@ -1841,8 +1843,7 @@ arping_pcap_recv(char* d, struct pcap_pkthdr *h, uint8_t *packet)
         //}
 
 	data->srcip = *(uint32_t*)&hip->ip_src;
-	//data->srcmac = buf
-	fprintf(stderr, "%d\n", strlen(buf));
+	memcpy(data->srcmac, buf, 17);
 }
 
 
@@ -2190,6 +2191,11 @@ int arping_libnet_init(struct arping_libnet_context * context) {
                 context->payload_suffix = "arping";
                 context->payload_suffix_size = strlen(context->payload_suffix);
         }
+
+	//TODO: temp, think about better impl: arping_recv needs suffix to check
+	payload_suffix_size = context->payload_suffix_size;
+        payload_suffix = malloc(payload_suffix_size);
+	memcpy(payload_suffix, context->payload_suffix, payload_suffix_size);
         
 	do_libnet_init(context, "enp0s3"/*ifname*/, 0);
 	vlan_prio = 0;
@@ -2199,7 +2205,8 @@ int arping_libnet_init(struct arping_libnet_context * context) {
 
 int arping_pcap_init(struct arping_pcap_context * context) {
 	char ebuf[LIBNET_ERRBUF_SIZE + PCAP_ERRBUF_SIZE];
-	const char* ifname = NULL; // an option to specify interface
+	//TODO: determine ifname based on ip/mac
+	const char* ifname = "enp0s3"; // an option to specify interface
 	const char* drop_group = NULL;
 	struct bpf_program bp;
 	char bpf_filter[64];
@@ -2249,7 +2256,7 @@ int arping_pcap_init(struct arping_pcap_context * context) {
                 	pcap_geterr(context->pcap));
                return 0;
         }
-
+	
 	return 1;
 }
 
@@ -2258,9 +2265,14 @@ int arping_pcap_init(struct arping_pcap_context * context) {
  * Retrieves a first packet from pcap fd and returns (mac, ip)
  */
 int arping_recv(struct arping_pcap_context* context, char* mac, uint32_t* ip) {
+	struct packet_metadata data;
+	data.srcmac = mac;
+	
+	const uint32_t packetwait = 1000000;
 	struct timespec ts;
 	struct timespec endtime;
         char done = 0;
+	char sigint = 0;
 
         if (verbose > 3) {
         	printf("arping: receiving packets...\n");
@@ -2303,7 +2315,7 @@ int arping_recv(struct arping_pcap_context* context, char* mac, uint32_t* ip) {
                 }
 
 		if (sigint) return 0;
-
+		
 	        /* try to wait for data */
 	        {
                 	fd_set fds;
@@ -2313,9 +2325,9 @@ int arping_recv(struct arping_pcap_context* context, char* mac, uint32_t* ip) {
                         tv.tv_usec = ts.tv_nsec / 1000;
 
                         FD_ZERO(&fds);
-                        FD_SET(fd, &fds);
+                        FD_SET(context->fd, &fds);
 
-                        r = select(fd + 1, &fds, NULL, NULL, &tv);
+                        r = select(context->fd + 1, &fds, NULL, NULL, NULL/*&tv*/);
 		        switch (r) {
 		        case 0: /* timeout */
                                        switch (display) {
@@ -2345,15 +2357,16 @@ int arping_recv(struct arping_pcap_context* context, char* mac, uint32_t* ip) {
 			       	break;
 		       	default: /* data returned */
 			       	trydispatch = 1;
+				//printf("Dispatching...\n");
 			       	break;
 		       	}
 	       	}
 
 	       	if (trydispatch) {
 		       	int ret;
-                       	if (0 > (ret = pcap_dispatch(pcap, -1,
+                       	if (0 > (ret = pcap_dispatch(context->pcap, -1,
                                                     (pcap_handler)arping_pcap_recv,
-                                                    (char*)data))) {
+                                                    (char*)&data))) {
 			       	/* rest, so we don't take 100% CPU... mostly
                                    hmm... does usleep() exist everywhere? */
 			       	usleep(1);
@@ -2366,6 +2379,7 @@ int arping_recv(struct arping_pcap_context* context, char* mac, uint32_t* ip) {
 					       	ret);
 			       	}
 		       	}
+			*ip = data.srcip;
 		       	return 1;
 	       	}
 	       	return 0;
@@ -2492,10 +2506,11 @@ int arping_send(struct arping_libnet_context* context, const char* ip_mask, cons
 	{
 		int c;
 		for (c = 0; (maxcount < 0 || c < maxcount); c++) {
+			fprintf(stderr, "pingmac_send: %s %s\n", ip_mask, mac);
 			pingmac_send(&request, xrandom(), c);
 		}
 	}
-	return 0;
+	return 1;
 }
 
 /**

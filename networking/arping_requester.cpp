@@ -26,12 +26,13 @@ static std::string ip_addr2str(uint32_t addr) {
 	return std::to_string(a) + '.' + std::to_string(b) + '.' + std::to_string(c) + '.' + std::to_string(d);
 }
 
-std::string ArpingRequester::request(std::string ip_mask, std::string mac_requested){
-    uint32_t ip;
-    if (get_ip_local(&context, ip_mask.c_str(), mac_requested.c_str(), &ip)) {
-		std::cout <<ip_addr2str(ip) << std::endl;
-	return ip_addr2str(ip);
-    } else {
-	throw NoResponseException();
-    }
+void ArpingRequester::request(std::string ip_mask, std::string mac_requested){
+	arping_send(&context, ip_mask.c_str(), mac_requested.c_str());
+}
+
+std::string ArpingRequester::request_instant(std::string ip_mask, std::string mac_requested) {
+	uint32_t ip;
+	if (get_ip_local(&context, ip_mask.c_str(), mac_requested.c_str(), &ip)) {
+		return ip_addr2str(ip);
+	} else throw NoResponseException();
 }

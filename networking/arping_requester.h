@@ -8,16 +8,17 @@ extern "C" {
 class ArpingRequester: public Requester
 {  
 	private:
-		struct arping_context context;	
+		struct arping_libnet_context context;	
     
 	public:
 		ArpingRequester() {
 			// TODO: add constructor argument - number of arping request retries
-			arping_init(&context);
+			arping_libnet_init(&context);
 		}
 		~ArpingRequester() {
 			// TODO: libnet_destroy(context.libnet)
 		}
-        virtual std::string request(std::string ip_mask, std::string mac_requested); 
+        virtual void request(std::string ip_mask, std::string mac_requested); 
+        virtual std::string request_instant(std::string ip_mask, std::string mac_requested); 
 
 };
