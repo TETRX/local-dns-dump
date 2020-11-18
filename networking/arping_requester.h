@@ -1,4 +1,5 @@
 #include "requester.h"
+#include "../lib/blocking_queue.h"
 
 extern "C" {
 	#include "arping.h" // same
@@ -8,12 +9,16 @@ extern "C" {
 class ArpingRequester: public Requester
 {  
 	private:
-		struct arping_libnet_context context;	
+		struct arping_libnet_context context;
+        BlockingQueue<std::pair<std::string, std::string>> requests;
+
+        void listen_for_requests();
     
 	public:
-		ArpingRequester() {
+		ArpingRequester() : Requester() {
 			// TODO: add constructor argument - number of arping request retries
 			arping_libnet_init(&context);
+            listen_for_requests();
 		}
 		~ArpingRequester() {
 			// TODO: libnet_destroy(context.libnet)

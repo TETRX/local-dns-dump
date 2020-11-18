@@ -2,6 +2,7 @@
 #include "no_response_exception.h"
 #include <string>
 #include <iostream>
+#include <thread>
 
 #if HAVE_CONFIG_H
 #include "../local_dns/config.h" // consider copying this file in networking/
@@ -27,7 +28,7 @@ static std::string ip_addr2str(uint32_t addr) {
 }
 
 void ArpingRequester::request(std::string ip_mask, std::string mac_requested){
-	arping_send(&context, ip_mask.c_str(), mac_requested.c_str());
+	requests.push(make_pair(ip_mask, mac_requested));
 }
 
 std::string ArpingRequester::request_instant(std::string ip_mask, std::string mac_requested) {
@@ -35,4 +36,13 @@ std::string ArpingRequester::request_instant(std::string ip_mask, std::string ma
 	if (get_ip_local(&context, ip_mask.c_str(), mac_requested.c_str(), &ip)) {
 		return ip_addr2str(ip);
 	} else throw NoResponseException();
+}
+
+void ArpingRequester::listen_for_requests() {
+    std::thread([this]() {
+        while (true) {
+            auto request = this->requests.pop();
+            arping_send(&(this->context), request.first.c_str(), request.second.c_str());
+        }
+    }).detach();
 }

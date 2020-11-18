@@ -17,6 +17,6 @@ class ArpingListener: public Listener
 		~ArpingListener() {
 			// TODO: pcap_close(context.pcap)
 		}
-        	virtual bool listen(std::pair<std::string, std::string>* out); 
+        virtual bool listen(std::pair<std::string, std::string>* out);
 
 };

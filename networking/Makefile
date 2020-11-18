@@ -10,6 +10,7 @@ arping:
 	mv ../local_dns/src/arping.a .
 
 clean:
-	rm -f *.x
+	rm -f ../test/*.x
 	rm -f *.o
 	rm arping.a
+	rm -f ../test/*.o
