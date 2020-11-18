@@ -10,15 +10,16 @@
 
 
 void IPGetter::request_a_lot_single(std::string mac) {
+	std::thread([mac](const std::string& ip_prefix, Requester* requester) {
 	for (int i = 0; i < 255; i++) {
 		const int i_cp(i);
-		const std::string ip = local_network_ip_prefix + std::to_string(i_cp);
+		const std::string ip = ip_prefix + std::to_string(i_cp);
 		requester->request(ip, mac);
 		/*try {
 			return requester_local->request_instant(ip, mac);
 		} catch (NoResponseException e) {}*/
 	}
-	//return "";
+	}, local_network_ip_prefix, requester).detach();
 }
 
 
@@ -28,7 +29,7 @@ void IPGetter::request_a_lot(std::string mac){
     for(int i=0;i<255;i++){
         const int i_cp(i);
         const std::string ip = local_network_ip_prefix+std::to_string(i_cp);
-        requests.push_back([ip,mac,requester_local](){
+        requests.push_back([ip, mac, requester_local](){
         	requester_local->request(ip,mac);
         });
     }    
@@ -63,7 +64,7 @@ std::string IPGetter::get_ip(std::string mac){
     }
     result = std::promise<std::string>();
     entry.first->second = &result;
-    request_a_lot_single(mac);
+    request_a_lot(mac);
     std::string all_requests = wait_for_promise(result);
     return all_requests;
 }

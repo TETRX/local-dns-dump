@@ -2419,7 +2419,7 @@ int arping_send(struct arping_libnet_context* context, const char* ip_mask, cons
 	if (!is_mac_addr(mac)) {
 		fprintf(stderr, "arping: Options given only apply to "
 			"MAC ping, but no MAC address given as "
-			"argument\n");
+			"argument (%s)\n", mac);
 		return 0;
 	}
         if (!get_mac_addr(mac, request.dstmac)) {
