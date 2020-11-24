@@ -1,5 +1,6 @@
 #include "arping_requester.h"
+#include <string>
 
-ArpingRequester::request(std::string ip_mask, std::string mac_requested){
-    return "" //TODO
+std::string ArpingRequester::request(std::string ip_mask, std::string mac_requested){
+    return std::string(""); //TODO
 }
