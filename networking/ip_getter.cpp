@@ -3,10 +3,9 @@
 #include <vector>
 #include <future>
 #include <thread>
-#include <iostream>
 
 
-std::string IPGetter::request_a_lot(std::string mac){
+void IPGetter::request_a_lot(std::string mac){
     std::vector<std::function<std::string()>> requests;
     Requester *requester_local=requester;
     for(int i=0;i<255;i++){
@@ -21,31 +20,34 @@ std::string IPGetter::request_a_lot(std::string mac){
             }
         });
     }    
-    std::vector<std::shared_future<std::string>> futures;
-    for(auto& request: requests){
-        std::shared_future<std::string> future = std::async(std::launch::async, request);
-        futures.push_back(future);
+    for(auto request: requests){
+        std::thread(request).detach();
     }
-    int i=0;
-    for(auto& future: futures){
-        future.wait();
+    
+}
+
+std::string IPGetter::wait_for_promise(std::promise<std::string>& promise){
+    auto future = promise.get_future();
+    auto status = future.wait_for(std::chrono::milliseconds(timeout));
+    if(status==std::future_status::timeout){
+        return "";
     }
-    for(auto& future:futures){
-        std::string result = future.get();
-        // std::cout << result << std::endl;
-        if(result!=""){
-            return result;
-        }
+    else {
+        return future.get();
     }
-    return "";
 }
 
 std::string IPGetter::get_ip(std::string mac){
-    try{
-        std::string ip=requester->request(local_network_ip_prefix+"255", mac);
-        return ip;
+    std::promise<std::string> result;
+    map_lock.lock();
+    map->emplace(&result);
+    map_lock.unlock();
+    requester->request(local_network_ip_prefix+"255",mac);
+    std::string broadcast_only = wait_for_promise(result);
+    if(broadcast_only!=""){
+        return broadcast_only;
     }
-    catch(NoResponseException no_response){
-        return request_a_lot(mac);
-    }
+    request_a_lot(mac);
+    std::string all_requests = wait_for_promise(result);
+    return all_requests;
 }

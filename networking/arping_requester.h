@@ -18,6 +18,6 @@ class ArpingRequester: public Requester
 		~ArpingRequester() {
 			// TODO: libnet_destroy(context.libnet)
 		}
-        	virtual std::string request(std::string ip_mask, std::string mac_requested); 
+        virtual std::string request(std::string ip_mask, std::string mac_requested); 
 
 };
