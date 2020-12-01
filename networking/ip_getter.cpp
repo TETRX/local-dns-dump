@@ -5,6 +5,21 @@
 #include <thread>
 
 
+std::string IPGetter::request_a_lot_single(std::string mac) {
+	Requester *requester_local = requester;
+	for (int i = 0; i < 255; i++) {
+		const int i_cp(i);
+		const std::string ip = local_network_ip_prefix + std::to_string(i_cp);
+		try {
+			return requester_local->request(ip, mac);
+		} catch (NoResponseException e) {
+
+		}
+	}
+	return "";
+}
+
+
 void IPGetter::request_a_lot(std::string mac){
     std::vector<std::function<std::string()>> requests;
     Requester *requester_local=requester;

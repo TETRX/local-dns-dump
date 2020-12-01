@@ -2,7 +2,7 @@
 
 extern "C" {
 	#include "arping.h" // same
-	#include "../local_dns/src/arping_init.h" // same
+	#include "../local_dns/src/arping_libnet_context.h" // same
 }
 
 class ArpingRequester: public Requester
