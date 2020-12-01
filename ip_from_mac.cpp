@@ -52,7 +52,7 @@ main(int argc, char **argv)
 	struct arping_context context;
 	if (arping_init(&context)) {
 		uint32_t out_ip;
-		get_ip_local(&context, "192.168.0.2", "54:e0:19:62:e0:05", &out_ip);
+		get_ip_local(&context, "10.0.2.2", "52:54:00:12:35:02", &out_ip);
 		std::cout << out_ip << std::endl;
 		uint8_t a, b, c, d;
 		ip_addr2values(out_ip, &a, &b, &c, &d);
