@@ -1,0 +1,2 @@
+##Networking
+Jest to API dla całej reszty programu izolujące część sieciową. Odpowiada za logikę wysyłania i odbierania paczek arpingu z użyciem wielowątkowości. Na razie mamy szkielet programu, TODO jest jego przetestowanie.
