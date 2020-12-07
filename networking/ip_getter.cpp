@@ -6,7 +6,6 @@
 #include <utility>
 
 #include "ip_getter.h"
-#include "no_response_exception.h"
 
 
 void IPGetter::request_a_lot_single(std::string mac) {
