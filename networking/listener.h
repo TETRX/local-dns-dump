@@ -6,5 +6,5 @@
 class Listener
 {
 public:
-    virtual bool listen(std::pair<std::string, std::string>* out)=0; //returns (mac,IP)
+    virtual bool listen(std::pair<std::string, std::string>* out) = 0; //returns (mac,IP)
 };
