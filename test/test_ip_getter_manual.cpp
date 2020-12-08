@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <map>
 #include <future>
-#include <thread>
 
 #include "../networking/ip_getter.h"
 #include "../networking/arping_requester.h"
@@ -20,9 +19,6 @@ int main(){
     std::mutex lock;
     Replier replier(&reqs, lock, &listener);
     IPGetter ipgetter(&requester, &replier, &reqs, lock, PREFIX);
-    std::thread([&replier]() {
-		    replier.reply();
-		    }).detach();
     std::string my_ans = ipgetter.get_ip(std::string(MAC)); //testing mac
     std::cout << "IPGetter got: " << my_ans << std::endl;
     return 0;
