@@ -1,5 +1,7 @@
+NETWORKING = ../networking
+
 networking:
-	cd ../networking && make test
+	cd $(NETWORKING) && make test
 
 clean:
 	rm *.x
