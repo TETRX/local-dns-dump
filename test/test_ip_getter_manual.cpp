@@ -12,9 +12,10 @@
 #define MAC "52:54:00:12:35:02"
 
 
-int main(){
-    ArpingRequester requester;
-    ArpingListener listener;
+int main() {
+    ArpingContext context;
+    ArpingRequester requester(&context);
+    ArpingListener listener(&context);
     std::map<std::string, std::promise<std::string>*> reqs;
     std::mutex lock;
     Replier replier(&reqs, lock, &listener);

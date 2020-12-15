@@ -9,7 +9,6 @@ class Requester
         Requester() {}
     public:
         virtual void request(std::string ip_mask, std::string mac_requested) = 0;
-	    virtual std::string request_instant(std::string ip_mask, std::string mac_required) = 0;
         /*
         * not sure if using strings is the best here, 
         * intention is ip_getter doesn't have to worry about using the same data structures the library is using
