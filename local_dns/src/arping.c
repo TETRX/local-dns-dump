@@ -1780,6 +1780,7 @@ arping_pcap_recv(char* d, struct pcap_pkthdr *h, uint8_t *packet)
     if (verbose > 3) {
         printf("arping: ... is echo reply code\n");
     }
+    fprintf(stderr, "until her1\n");
 
     const char* payload = (char*)hicmp + LIBNET_ICMPV4_ECHO_H;
     const ssize_t payload_size = h->len - (payload - (char*)packet);
@@ -2362,6 +2363,7 @@ int arping_recv(struct arping_context* context, char* mac, uint32_t* ip) {
 	       	}
 
 	       	if (trydispatch) {
+                fprintf(stderr, "dispatching...\n");
 		       	int ret;
                 if (0 > (ret = pcap_dispatch(context->pcap, -1,
                                 (pcap_handler)arping_pcap_recv,

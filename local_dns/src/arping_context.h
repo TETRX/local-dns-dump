@@ -1,8 +1,8 @@
 #ifndef ARPING_CONTEXT_H
 #define ARPING_CONTEXT_H
 #include <sys/types.h>
+#include <pcap/pcap.h>
 struct libnet_t;
-struct pcap_t;
 
 struct arping_context {
 	libnet_t * libnet;
