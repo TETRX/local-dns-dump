@@ -76,8 +76,12 @@ void configUtils::addEntry(const std::string &dns_name, const std::string &mac) 
     rename(copyFileName.c_str(), this->filename.c_str());
 }
 
-bool configUtils::isDnsNameInMap(const std::string &dns_name) {
+std::string configUtils::getMacFromDns(const std::string &dns_name) {
     std::ifstream inputFile(this->filename);
     nlohmann::json j = nlohmann::json::parse(inputFile, nullptr, true, true);
-    return j[dns_name] != nullptr;
+    if (j.contains(dns_name)) {
+        return j[dns_name];
+    }
+
+    return "";
 }

@@ -17,4 +17,6 @@ public:
     void addEntry(const std::string &dns_name, const std::string &mac);
 
     bool isDnsNameInMap(const std::string &dns_name);
+
+    std::string getMacFromDns(const std::string &dns_name);
 };
