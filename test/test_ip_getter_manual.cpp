@@ -29,7 +29,7 @@ int main() {
     std::map<std::string, std::promise<std::string>*> reqs;
     std::mutex lock;
     Replier replier(&reqs, lock, &listener);
-    IPGetter ipgetter(&requester, &replier, &reqs, lock, PREFIX, 30 * 1000);
+    IPGetter ipgetter(&requester, &replier, &reqs, lock, PREFIX, 10 * 1000);
     std::string my_ans = ipgetter.get_ip(std::string(MAC)); //testing mac
     std::cout << "IPGetter got: " << my_ans << std::endl;
 #if !USE_ARPING

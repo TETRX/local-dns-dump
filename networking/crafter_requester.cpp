@@ -25,7 +25,7 @@ void CrafterRequester::listen_for_requests() {
                 Crafter::Packet *packet = new Crafter::Packet;
                 packet->PushLayer(this->ethernetHeaderTemplate);
                 packet->PushLayer(this->arpHeaderTemplate);
-                std::cout << "Sending " << this->ethernetHeaderTemplate.GetSourceMAC() << " " << this->ethernetHeaderTemplate.GetDestinationMAC() << " " << this->arpHeaderTemplate.GetSenderIP() << " " << this->arpHeaderTemplate.GetSenderMAC() << " " << this->arpHeaderTemplate.GetTargetIP() << std::endl;
+                //std::cout << "Sending " << this->ethernetHeaderTemplate.GetSourceMAC() << " " << this->ethernetHeaderTemplate.GetDestinationMAC() << " " << this->arpHeaderTemplate.GetSenderIP() << " " << this->arpHeaderTemplate.GetSenderMAC() << " " << this->arpHeaderTemplate.GetTargetIP() << std::endl;
                 packet->Send(iface);
         }
     }).detach();
