@@ -1,0 +1,9 @@
+[Unit]
+Description=Local dns service, defines a mapping between user defined addresses and IP from local network
+
+[Service]
+Type=simple
+ExecStart=sudo path_to_exec
+
+[Install]
+WantedBy=default.target
