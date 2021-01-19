@@ -19,14 +19,20 @@ void CrafterRequester::listen_for_requests() {
     std::thread([this]() {
             while (true) {
                 auto request = this->requests.pop();
-                this->ethernetHeaderTemplate.SetDestinationMAC(request.second);
-                this->arpHeaderTemplate.SetTargetIP(request.first);
-                
-                Crafter::Packet *packet = new Crafter::Packet;
-                packet->PushLayer(this->ethernetHeaderTemplate);
-                packet->PushLayer(this->arpHeaderTemplate);
-                //std::cout << "Sending " << this->ethernetHeaderTemplate.GetSourceMAC() << " " << this->ethernetHeaderTemplate.GetDestinationMAC() << " " << this->arpHeaderTemplate.GetSenderIP() << " " << this->arpHeaderTemplate.GetSenderMAC() << " " << this->arpHeaderTemplate.GetTargetIP() << std::endl;
-                packet->Send(iface);
+                std::string ipMask = request.first;
+                std::string mac = request.second;
+                this->ethernetHeaderTemplate.SetDestinationMAC(mac);
+                std::vector<std::string> net = Crafter::GetIPs(ipMask);
+                std::vector<Crafter::Packet*> packets;
+                for (auto ipAddr = net.begin(); ipAddr != net.end(); ipAddr++) {
+                    this->arpHeaderTemplate.SetTargetIP(*ipAddr);
+                    Crafter::Packet *packet = new Crafter::Packet;
+                    packet->PushLayer(this->ethernetHeaderTemplate);
+                    packet->PushLayer(this->arpHeaderTemplate);
+                    packets.push_back(packet);
+                }
+                Crafter::Send(packets.begin(), packets.end(), iface, 48);
+                Crafter::ClearContainer(packets);
         }
     }).detach();
 }
