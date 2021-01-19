@@ -1,4 +1,0 @@
-// Config Map
-// dns_name: [MAC, (optional) IP, (optional) timestamp of the last IP resolve action]
-{
-}
