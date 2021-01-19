@@ -22,7 +22,6 @@ void configUtils::createFile(const std::string &name) {
 }
 
 configUtils::configUtils(const std::string &filename) : filename(filename) {
-    std::cout << this->filename << std::endl;
     createFile(filename);
 }
 
