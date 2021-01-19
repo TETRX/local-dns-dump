@@ -25,14 +25,16 @@ configUtils::configUtils(const std::string &filename) : filename(filename) {
     createFile(filename);
 }
 
-void configUtils::updateEntry(const std::string &dns_name, const std::string &mac,
-                              const std::vector<std::string> &cacheAttributes) {
-    std::string copyFileName = "copy" + filename;
+std::unordered_set<std::string>
+configUtils::updateEntry(const std::string &file, const std::string &dns_name, const std::string &mac,
+                         const std::vector<std::string> &cacheAttributes) {
+    std::unordered_set<std::string> user_dns_names_set;
+    std::string copyFileName = "copy" + file;
     createFile(copyFileName);
     std::ofstream copyFile;
     copyFile.open(copyFileName, std::ios_base::trunc);
 
-    std::ifstream configFile(filename);
+    std::ifstream configFile(file);
 
     std::string line;
     bool dnsUpdated = false; // indicate whether dns_name is a new entry
@@ -70,6 +72,9 @@ void configUtils::updateEntry(const std::string &dns_name, const std::string &ma
         nlohmann::json j = nlohmann::json::parse("{" + line + "}");
 
         auto e = j.items().begin();
+        if (file == USERFILE) {
+            user_dns_names_set.insert(e.key());
+        }
         if (e.key() == dns_name) {
             if (mac.length() == 0) {
                 j[e.key()] = cacheAttributes;
@@ -81,9 +86,13 @@ void configUtils::updateEntry(const std::string &dns_name, const std::string &ma
 
         copyFile << prettifyLine(j.dump(), hasEndComma || !dnsUpdated) << std::endl;
     }
-
-    remove(filename.c_str());
-    rename(copyFileName.c_str(), filename.c_str());
+    if (dns_name.length() == 0) {
+        remove(copyFileName.c_str());
+        return user_dns_names_set;
+    }
+    remove(file.c_str());
+    rename(copyFileName.c_str(), file.c_str());
+    return user_dns_names_set;
 }
 
 
