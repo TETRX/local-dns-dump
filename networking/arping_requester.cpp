@@ -1,5 +1,4 @@
 #include "arping_requester.h"
-#include "no_response_exception.h"
 #include <string>
 #include <iostream>
 #include <thread>
@@ -16,7 +15,17 @@ void ArpingRequester::listen_for_requests() {
     std::thread([this]() {
         while (true) {
             auto request = this->requests.pop();
-            this->context->send(request.first, request.second);
+            std::string ipMask = request.first;
+            std::string mac = request.second;
+            size_t pos;
+            if ((pos = ipMask.find('*')) == std::string::npos) {
+                this->context->send(ipMask, mac);
+            } else {
+                for (int i = 0; i < 256; i++) {
+                    ipMask.replace(pos, ipMask.length() - pos, std::to_string(i));
+                    this->context->send(ipMask, mac);
+                }
+            }
         }
     }).detach();
 }

@@ -6,12 +6,16 @@
 
 #include "listener.h"
 
+class IPGetter;
+
 class Replier
 {
     private:
-        std::map<std::string, std::promise<std::string>*>* map;
-        std::mutex& map_lock;
+        std::map<std::string, std::promise<std::string>*> map;
+        std::mutex map_lock;
         Listener* listener;
     public:
-        Replier(std::map<std::string, std::promise<std::string>*>* map, std::mutex& map_lock, Listener* listener);
+        Replier(Listener* listener);
+
+        friend IPGetter;
 };
