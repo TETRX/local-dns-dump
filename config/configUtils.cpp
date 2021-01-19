@@ -25,7 +25,7 @@ void configUtils::createFile(const std::string &name) {
     file << "{\n}";
 }
 
-void configUtils::addEntry(const std::string &dns_name, const std::string &mac) {
+void configUtils::updateEntry(const std::string &dns_name, const std::vector<std::string> &attributes) {
     std::string copyFileName = "copy" + this->filename;
     createFile(copyFileName);
     std::ofstream copyFile;
@@ -47,7 +47,7 @@ void configUtils::addEntry(const std::string &dns_name, const std::string &mac) 
             if (dnsUpdated) {
                 copyFile << line << std::endl;
             } else { // append new dns pair
-                nlohmann::json j = {{dns_name, mac}};
+                nlohmann::json j = {{dns_name, attributes}};
                 copyFile << prettifyLine(j.dump(), false) << std::endl;
                 copyFile << line << std::endl;
             }
@@ -65,7 +65,7 @@ void configUtils::addEntry(const std::string &dns_name, const std::string &mac) 
 
         auto e = j.items().begin();
         if (e.key() == dns_name) {
-            j[e.key()] = mac;
+            j[e.key()] = attributes;
             dnsUpdated = true;
         }
 
@@ -76,12 +76,12 @@ void configUtils::addEntry(const std::string &dns_name, const std::string &mac) 
     rename(copyFileName.c_str(), this->filename.c_str());
 }
 
-std::string configUtils::getMacFromDns(const std::string &dns_name) {
+std::vector<std::string> configUtils::getEntry(const std::string &dns_name) {
     std::ifstream inputFile(this->filename);
     nlohmann::json j = nlohmann::json::parse(inputFile, nullptr, true, true);
     if (j.contains(dns_name)) {
         return j[dns_name];
     }
 
-    return "";
+    return {};
 }

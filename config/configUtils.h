@@ -14,9 +14,8 @@ private:
 public:
     configUtils();
 
-    void addEntry(const std::string &dns_name, const std::string &mac);
+    void updateEntry(const std::string &dns_name, const std::vector<std::string> &attributes);
 
-    bool isDnsNameInMap(const std::string &dns_name);
-
-    std::string getMacFromDns(const std::string &dns_name);
+    // returns vector (possibly empty) with all attributes [MAC, (optional) IP, (optional) timestamp]
+    std::vector<std::string> getEntry(const std::string &dns_name);
 };
