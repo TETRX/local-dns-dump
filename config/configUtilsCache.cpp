@@ -2,24 +2,26 @@
 #include "configUtilsCache.h"
 
 void configUtilsCache::updateEntry(const std::string &dns_name, const std::vector<std::string> &cacheAttributes) {
-    configUtils::updateEntry(CACHEFILE, dns_name, "", cacheAttributes);
+    utils.updateEntry(dns_name, cacheAttributes);
 }
 
 std::vector<std::string> configUtilsCache::getIpAttributes(const std::string &dns_name) {
-    return configUtils::getEntry(dns_name);
+    return utils.getEntry(dns_name);
 }
 
-configUtilsCache::configUtilsCache() : configUtils(CACHEFILE) {}
+configUtilsCache::configUtilsCache() {
+    utils.setFileName(filename);
+}
 
-void configUtilsCache::synchronizeCacheWithUserConfig() {
-    auto user_dns_names = configUtils::updateEntry(USERFILE, "", "", {});
+void configUtilsCache::synchronizeCacheWithUserConfig(configUtilsUser utilsUser) {
+    auto user_dns_names = utilsUser.entries();
 
-    std::string copyFileName = "copy" + CACHEFILE;
-    createFile(copyFileName);
+    std::string copyFileName = "copy" + filename;
+    configUtils::createFile(copyFileName);
     std::ofstream copyFile;
     copyFile.open(copyFileName, std::ios_base::trunc);
 
-    std::ifstream configFile(CACHEFILE);
+    std::ifstream configFile(filename);
 
     std::string line;
     std::vector<std::pair<std::string, std::vector<std::string>>> entries;
@@ -46,8 +48,8 @@ void configUtilsCache::synchronizeCacheWithUserConfig() {
             entries.emplace_back(e.key(), attributes);
         }
     }
-    remove(CACHEFILE.c_str());
-    rename(copyFileName.c_str(), CACHEFILE.c_str());
+    remove(filename.c_str());
+    rename(copyFileName.c_str(), filename.c_str());
 
     for (const auto &entry: entries) {
         updateEntry(entry.first, entry.second);

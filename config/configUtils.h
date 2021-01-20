@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <unordered_map>
 #include <vector>
@@ -5,27 +7,25 @@
 #include "../lib/nlohmann/json.hpp"
 
 
-const std::string USERFILE = "DnsMapUser";
-const std::string CACHEFILE = "DnsMapCache";
-
 class configUtils {
 private:
-    const std::string filename;
-
-protected:
-
-    static void createFile(const std::string &filename);
+    std::string filename;
+    std::unordered_set<std::string> dns_names_set;
 
     static std::string prettifyLine(std::string line, bool insertComma);
 
-    static std::unordered_set<std::string>
-    updateEntry(const std::string &file, const std::string &dns_name, const std::string &mac,
-                const std::vector<std::string> &cacheAttributes);
+public:
+
+    static void createFile(const std::string &filename);
+
+    void setFileName(const std::string &filename);
+
+    std::unordered_set<std::string> entries();
+
+    void updateMap();
+
+    void
+    updateEntry(const std::string &dns_name, const std::vector<std::string> &attr, bool updateMap = false);
 
     std::vector<std::string> getEntry(const std::string &dns_name);
-
-public:
-    configUtils() = default;
-
-    configUtils(const std::string &filename);
 };

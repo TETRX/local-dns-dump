@@ -21,20 +21,23 @@ void configUtils::createFile(const std::string &name) {
     file << "{\n}";
 }
 
-configUtils::configUtils(const std::string &filename) : filename(filename) {
-    createFile(filename);
+void configUtils::setFileName(const std::string &name) {
+    this->filename = name;
 }
 
-std::unordered_set<std::string>
-configUtils::updateEntry(const std::string &file, const std::string &dns_name, const std::string &mac,
-                         const std::vector<std::string> &cacheAttributes) {
-    std::unordered_set<std::string> user_dns_names_set;
-    std::string copyFileName = "copy" + file;
+void configUtils::updateMap() {
+    updateEntry("", {}, true);
+}
+
+void configUtils::updateEntry(const std::string &dns_name,
+                              const std::vector<std::string> &attr, bool updateMap) {
+    this->dns_names_set.clear();
+    std::string copyFileName = "copy" + filename;
     createFile(copyFileName);
     std::ofstream copyFile;
     copyFile.open(copyFileName, std::ios_base::trunc);
 
-    std::ifstream configFile(file);
+    std::ifstream configFile(filename);
 
     std::string line;
     bool dnsUpdated = false; // indicate whether dns_name is a new entry
@@ -51,11 +54,8 @@ configUtils::updateEntry(const std::string &file, const std::string &dns_name, c
                 copyFile << line << std::endl;
             } else { // append new dns pair
                 nlohmann::json j;
-                if (mac.length() == 0) {
-                    j = {{dns_name, cacheAttributes}};
-                } else {
-                    j = {{dns_name, {mac}}};
-                }
+                j = {{dns_name, attr}};
+                this->dns_names_set.insert(dns_name);
 
                 copyFile << prettifyLine(j.dump(), false) << std::endl;
                 copyFile << line << std::endl;
@@ -72,27 +72,23 @@ configUtils::updateEntry(const std::string &file, const std::string &dns_name, c
         nlohmann::json j = nlohmann::json::parse("{" + line + "}");
 
         auto e = j.items().begin();
-        if (file == USERFILE) {
-            user_dns_names_set.insert(e.key());
-        }
+        this->dns_names_set.insert(e.key());
+
         if (e.key() == dns_name) {
-            if (mac.length() == 0) {
-                j[e.key()] = cacheAttributes;
-            } else {
-                j[e.key()] = {mac};
-            }
+
+            j[e.key()] = attr;
             dnsUpdated = true;
         }
 
         copyFile << prettifyLine(j.dump(), hasEndComma || !dnsUpdated) << std::endl;
     }
-    if (dns_name.length() == 0) {
+    if (updateMap) {
         remove(copyFileName.c_str());
-        return user_dns_names_set;
+        return;
     }
-    remove(file.c_str());
-    rename(copyFileName.c_str(), file.c_str());
-    return user_dns_names_set;
+
+    remove(filename.c_str());
+    rename(copyFileName.c_str(), filename.c_str());
 }
 
 
@@ -104,4 +100,9 @@ std::vector<std::string> configUtils::getEntry(const std::string &dns_name) {
     }
 
     return {};
+}
+
+std::unordered_set<std::string> configUtils::entries() {
+    updateMap();
+    return this->dns_names_set;
 }
