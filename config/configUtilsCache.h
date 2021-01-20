@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <mutex>
 #include "configUtils.h"
 #include "configUtilsUser.h"
 
@@ -8,6 +9,7 @@ class configUtilsCache {
 private:
     const std::string filename = "DnsMapCache";
     configUtils utils;
+    std::mutex m;
 public:
     configUtilsCache();
 

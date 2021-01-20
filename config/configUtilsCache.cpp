@@ -1,12 +1,18 @@
 #include <fstream>
+#include <thread>
 #include "configUtilsCache.h"
 
 void configUtilsCache::updateEntry(const std::string &dns_name, const std::vector<std::string> &cacheAttributes) {
+    m.lock();
     utils.updateEntry(dns_name, cacheAttributes);
+    m.unlock();
 }
 
 std::vector<std::string> configUtilsCache::getIpAttributes(const std::string &dns_name) {
-    return utils.getEntry(dns_name);
+    m.lock();
+    auto entry = utils.getEntry(dns_name);
+    m.unlock();
+    return entry;
 }
 
 configUtilsCache::configUtilsCache() {
@@ -14,6 +20,7 @@ configUtilsCache::configUtilsCache() {
 }
 
 void configUtilsCache::synchronizeCacheWithUserConfig(configUtilsUser utilsUser) {
+    m.lock();
     auto user_dns_names = utilsUser.entries();
 
     std::string copyFileName = "copy" + filename;
@@ -54,4 +61,5 @@ void configUtilsCache::synchronizeCacheWithUserConfig(configUtilsUser utilsUser)
     for (const auto &entry: entries) {
         updateEntry(entry.first, entry.second);
     }
+    m.unlock();
 }
