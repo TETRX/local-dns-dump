@@ -2,15 +2,15 @@
 #include <thread>
 #include "configUtilsCache.h"
 
-void configUtilsCache::updateEntry(const std::string &dns_name, const std::vector<std::string> &cacheAttributes) {
+void configUtilsCache::updateEntry(const std::string &mac, const std::vector<std::string> &cacheAttributes) {
     m.lock();
-    utils.updateEntry(dns_name, cacheAttributes);
+    utils.updateEntry(mac, cacheAttributes);
     m.unlock();
 }
 
-std::vector<std::string> configUtilsCache::getIpAttributes(const std::string &dns_name) {
+std::vector<std::string> configUtilsCache::getIpAttributes(const std::string &mac) {
     m.lock();
-    auto entry = utils.getEntry(dns_name);
+    auto entry = utils.getEntry(mac);
     m.unlock();
     return entry;
 }
@@ -21,7 +21,7 @@ configUtilsCache::configUtilsCache() {
 
 void configUtilsCache::synchronizeCacheWithUserConfig(configUtilsUser utilsUser) {
     m.lock();
-    auto user_dns_names = utilsUser.entries();
+    auto mac_set = utilsUser.entries();
 
     std::string copyFileName = "copy" + filename;
     configUtils::createFile(copyFileName);
@@ -48,7 +48,7 @@ void configUtilsCache::synchronizeCacheWithUserConfig(configUtilsUser utilsUser)
         nlohmann::json j = nlohmann::json::parse("{" + line + "}");
 
         auto e = j.items().begin();
-        if (user_dns_names.find(e.key()) == user_dns_names.end()) {
+        if (mac_set.find(e.key()) == mac_set.end()) {
             continue;
         } else {
             std::vector<std::string> attributes = {e.value()[0], e.value()[1]};

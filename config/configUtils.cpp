@@ -29,9 +29,11 @@ void configUtils::updateMap() {
     updateEntry("", {}, true);
 }
 
-void configUtils::updateEntry(const std::string &dns_name,
+void configUtils::updateEntry(const std::string &key,
                               const std::vector<std::string> &attr, bool updateMap) {
-    this->dns_names_set.clear();
+    if (updateMap) {
+        this->mac_set.clear();
+    }
     std::string copyFileName = "copy" + filename;
     createFile(copyFileName);
     std::ofstream copyFile;
@@ -40,7 +42,7 @@ void configUtils::updateEntry(const std::string &dns_name,
     std::ifstream configFile(filename);
 
     std::string line;
-    bool dnsUpdated = false; // indicate whether dns_name is a new entry
+    bool entryUpdated = false; // indicate whether key creates new entry
 
     while (getline(configFile, line)) {
         auto first_character = line.find_first_not_of(' ');
@@ -50,13 +52,11 @@ void configUtils::updateEntry(const std::string &dns_name,
         }
 
         if (line[first_character] == '}') {
-            if (dnsUpdated) {
+            if (entryUpdated) {
                 copyFile << line << std::endl;
-            } else { // append new dns pair
+            } else {
                 nlohmann::json j;
-                j = {{dns_name, attr}};
-                this->dns_names_set.insert(dns_name);
-
+                j = {{key, attr}};
                 copyFile << prettifyLine(j.dump(), false) << std::endl;
                 copyFile << line << std::endl;
             }
@@ -72,15 +72,18 @@ void configUtils::updateEntry(const std::string &dns_name,
         nlohmann::json j = nlohmann::json::parse("{" + line + "}");
 
         auto e = j.items().begin();
-        this->dns_names_set.insert(e.key());
-
-        if (e.key() == dns_name) {
-
-            j[e.key()] = attr;
-            dnsUpdated = true;
+        if (updateMap) {
+            this->mac_set.insert(static_cast<std::string> (e.value()[0]));
         }
 
-        copyFile << prettifyLine(j.dump(), hasEndComma || !dnsUpdated) << std::endl;
+
+        if (e.key() == key) {
+
+            j[e.key()] = attr;
+            entryUpdated = true;
+        }
+
+        copyFile << prettifyLine(j.dump(), hasEndComma || !entryUpdated) << std::endl;
     }
     if (updateMap) {
         remove(copyFileName.c_str());
@@ -92,11 +95,11 @@ void configUtils::updateEntry(const std::string &dns_name,
 }
 
 
-std::vector<std::string> configUtils::getEntry(const std::string &dns_name) {
+std::vector<std::string> configUtils::getEntry(const std::string &key) {
     std::ifstream inputFile(filename);
     nlohmann::json j = nlohmann::json::parse(inputFile, nullptr, true, true);
-    if (j.contains(dns_name)) {
-        return j[dns_name];
+    if (j.contains(key)) {
+        return j[key];
     }
 
     return {};
@@ -104,5 +107,5 @@ std::vector<std::string> configUtils::getEntry(const std::string &dns_name) {
 
 std::unordered_set<std::string> configUtils::entries() {
     updateMap();
-    return this->dns_names_set;
+    return this->mac_set;
 }

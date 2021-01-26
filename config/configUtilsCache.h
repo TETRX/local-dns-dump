@@ -16,7 +16,7 @@ public:
     void updateEntry(const std::string &dns_name, const std::vector<std::string> &attributes);
 
     // returns {ip, timestamp} vector
-    std::vector<std::string> getIpAttributes(const std::string &dns_name);
+    std::vector<std::string> getIpAttributes(const std::string &mac);
 
     void synchronizeCacheWithUserConfig(configUtilsUser utilsUser);
 };
