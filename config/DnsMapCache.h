@@ -18,5 +18,5 @@ public:
     // returns {ip, timestamp} vector
     std::vector<std::string> getIpAttributes(const std::string &mac);
 
-    void synchronizeCacheWithUserConfig(DnsMapUser dnsMapUser);
+    void synchronizeCacheWithUserConfig(DnsMapUser& dnsMapUser);
 };

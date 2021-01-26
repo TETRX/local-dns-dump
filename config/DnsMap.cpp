@@ -21,8 +21,7 @@ void DnsMap::createFile(const std::string &name) {
     file << "{\n}";
 }
 
-void DnsMap::setFileName(const std::string &name) {
-    this->filename = name;
+DnsMap::DnsMap(std::string filename) : filename(filename) {
 }
 
 void DnsMap::updateMap() {

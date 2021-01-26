@@ -15,10 +15,9 @@ private:
     static std::string prettifyLine(std::string line, bool insertComma);
 
 public:
+    DnsMap(std::string filename);
 
     static void createFile(const std::string &filename);
-
-    void setFileName(const std::string &filename);
 
     std::unordered_set<std::string> entries();
 

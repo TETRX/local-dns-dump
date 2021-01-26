@@ -15,11 +15,10 @@ std::vector<std::string> DnsMapCache::getIpAttributes(const std::string &mac) {
     return entry;
 }
 
-DnsMapCache::DnsMapCache() {
-    dnsMap.setFileName(filename);
+DnsMapCache::DnsMapCache() : dnsMap(filename) {
 }
 
-void DnsMapCache::synchronizeCacheWithUserConfig(DnsMapUser dnsMapUser) {
+void DnsMapCache::synchronizeCacheWithUserConfig(DnsMapUser& dnsMapUser) {
     m.lock();
     auto mac_set = dnsMapUser.entries();
 

@@ -12,8 +12,7 @@ std::string DnsMapUser::getMacFromDnsName(const std::string &dns_name) {
     return attributes[0];
 }
 
-DnsMapUser::DnsMapUser() {
-    dnsMap.setFileName(this->filename);
+DnsMapUser::DnsMapUser() : dnsMap(filename) {
 }
 
 std::unordered_set<std::string> DnsMapUser::entries() {

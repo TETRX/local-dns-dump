@@ -27,5 +27,7 @@ clean:
 	rm -f *.o
 	rm -f arping.a
 	rm -f $(TEST)/test_ip_getter_manual.x
+	rm -f $(CONFIG)/*.o
+	rm -f $(LIB)/*.o
 	cd $(LOCAL_DNS)/src; make clean
 	cd $(LIB_CRAFTER_SRC); make clean; cd $(PROJECT_DIR)/networking
