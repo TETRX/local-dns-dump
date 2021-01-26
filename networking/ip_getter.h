@@ -26,7 +26,7 @@ private:
 public:
     std::string get_ip(std::string mac); //This is the API the rest of the program has to call in order to invoke local-dns for a certain mac address
     
-    IPGetter(Requester *requester1, Replier *replier1, DnsMapUser dnsMapUser, std::string local_network_ip_prefix1="192.168.0.", int timeout1=1000) : requester(requester1), replier(replier1), map(&replier1->map), map_lock(replier1->map_lock), local_network_ip_prefix(local_network_ip_prefix1), timeout(timeout1) {
+    IPGetter(Requester *requester, Replier *replier, DnsMapUser& dnsMapUser, std::string local_network_ip_prefix1="192.168.0.", int timeout1=1000) : requester(requester), replier(replier), map(&replier->map), map_lock(replier->map_lock), local_network_ip_prefix(local_network_ip_prefix1), timeout(timeout1) {
         cache.synchronizeCacheWithUserConfig(dnsMapUser);
     }
 };

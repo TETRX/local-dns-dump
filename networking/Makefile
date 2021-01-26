@@ -7,11 +7,9 @@ LIB_CRAFTER_SRC = $(PROJECT_DIR)/libcrafter/libcrafter
 
 test_with_arping: $(TEST)/test_ip_getter_manual.o ip_getter.o arping_context.o arping_requester.o arping_listener.o replier.o $(CONFIG)/DnsMap.o $(CONFIG)/DnsMapCache.o $(CONFIG)/DnsMapUser.o $(LIB)/time_utils.o arping
 	g++ -DUSE_ARPING=1 -o $(TEST)/test_ip_getter_manual.x $(TEST)/test_ip_getter_manual.o arping_context.o ip_getter.o arping_requester.o arping_listener.o replier.o $(CONFIG)/DnsMap.o $(CONFIG)/DnsMapCache.o $(CONFIG)/DnsMapUser.o $(LIB)/time_utils.o -pthread -L. -l:arping.a -lcap -lnet -lnsl -lrt -lpcap -lm
-	rm $(TEST)/test_ip_getter_manual.o ip_getter.o replier.o $(CONFIG)/DnsMap.o $(CONFIG)/DnsMapCache.o $(CONFIG)/DnsMapUser.o $(LIB)/time_utils.o arping_requester.o arping_listener.o 
 
 test_with_crafter: $(TEST)/test_ip_getter_manual.o ip_getter.o crafter_requester.o crafter_listener.o replier.o $(CONFIG)/DnsMap.o $(CONFIG)/DnsMapCache.o $(CONFIG)/DnsMapUser.o $(LIB)/time_utils.o arping
 	g++ -std=c++20 -DUSE_ARPING=0 -o $(TEST)/test_ip_getter_manual.x $(TEST)/test_ip_getter_manual.o ip_getter.o crafter_requester.o crafter_listener.o replier.o $(CONFIG)/DnsMap.o $(CONFIG)/DnsMapCache.o $(CONFIG)/DnsMapUser.o $(LIB)/time_utils.o -I../libcrafter/libcrafter -pthread -L. -l:arping.a -lcrafter -lcap -lnet -lnsl -lrt -lpcap -lm -lresolv
-	rm $(TEST)/test_ip_getter_manual.o ip_getter.o replier.o $(CONFIG)/DnsMap.o $(CONFIG)/DnsMapCache.o $(CONFIG)/DnsMapUser.o $(LIB)/time_utils.o crafter_requester.o crafter_listener.o
 
 
 %.o : %.cpp
