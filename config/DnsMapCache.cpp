@@ -1,30 +1,30 @@
 #include <fstream>
 #include <thread>
-#include "configUtilsCache.h"
+#include "DnsMapCache.h"
 
-void configUtilsCache::updateEntry(const std::string &dns_name, const std::vector<std::string> &cacheAttributes) {
+void DnsMapCache::updateEntry(const std::string &mac, const std::vector<std::string> &cacheAttributes) {
     m.lock();
-    utils.updateEntry(dns_name, cacheAttributes);
+    dnsMap.updateEntry(mac, cacheAttributes);
     m.unlock();
 }
 
-std::vector<std::string> configUtilsCache::getIpAttributes(const std::string &dns_name) {
+std::vector<std::string> DnsMapCache::getIpAttributes(const std::string &mac) {
     m.lock();
-    auto entry = utils.getEntry(dns_name);
+    auto entry = dnsMap.getEntry(mac);
     m.unlock();
     return entry;
 }
 
-configUtilsCache::configUtilsCache() {
-    utils.setFileName(filename);
+DnsMapCache::DnsMapCache() {
+    dnsMap.setFileName(filename);
 }
 
-void configUtilsCache::synchronizeCacheWithUserConfig(configUtilsUser utilsUser) {
+void DnsMapCache::synchronizeCacheWithUserConfig(DnsMapUser dnsMapUser) {
     m.lock();
-    auto user_dns_names = utilsUser.entries();
+    auto mac_set = dnsMapUser.entries();
 
     std::string copyFileName = "copy" + filename;
-    configUtils::createFile(copyFileName);
+    DnsMap::createFile(copyFileName);
     std::ofstream copyFile;
     copyFile.open(copyFileName, std::ios_base::trunc);
 
@@ -48,7 +48,7 @@ void configUtilsCache::synchronizeCacheWithUserConfig(configUtilsUser utilsUser)
         nlohmann::json j = nlohmann::json::parse("{" + line + "}");
 
         auto e = j.items().begin();
-        if (user_dns_names.find(e.key()) == user_dns_names.end()) {
+        if (mac_set.find(e.key()) == mac_set.end()) {
             continue;
         } else {
             std::vector<std::string> attributes = {e.value()[0], e.value()[1]};

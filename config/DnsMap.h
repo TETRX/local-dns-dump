@@ -7,10 +7,10 @@
 #include "../lib/nlohmann/json.hpp"
 
 
-class configUtils {
+class DnsMap {
 private:
     std::string filename;
-    std::unordered_set<std::string> dns_names_set;
+    std::unordered_set<std::string> mac_set;
 
     static std::string prettifyLine(std::string line, bool insertComma);
 
@@ -25,7 +25,7 @@ public:
     void updateMap();
 
     void
-    updateEntry(const std::string &dns_name, const std::vector<std::string> &attr, bool updateMap = false);
+    updateEntry(const std::string &key, const std::vector<std::string> &attr, bool updateMap = false);
 
-    std::vector<std::string> getEntry(const std::string &dns_name);
+    std::vector<std::string> getEntry(const std::string &key);
 };

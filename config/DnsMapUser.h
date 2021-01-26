@@ -1,15 +1,15 @@
 #pragma once
 
 #include <iostream>
-#include "configUtils.h"
+#include "DnsMap.h"
 
-class configUtilsUser {
+class DnsMapUser {
 private:
-    const std::string filename = "DnsMapUser";
-    configUtils utils;
+    const std::string filename = "DnsMapUser.config";
+    DnsMap dnsMap;
 
 public:
-    configUtilsUser();
+    DnsMapUser();
 
     void updateEntry(const std::string &dns_name, const std::string &mac);
 
