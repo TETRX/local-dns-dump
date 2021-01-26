@@ -35,6 +35,6 @@ std::string IPGetter::get_ip(std::string mac){
     std::string resultIP = wait_for_promise(result);
     cacheAttributes.push_back(resultIP);
     cacheAttributes.push_back(TimeUtils::timeNow());
-    cache.updateEntry(mac, entry);
+    cache.updateEntry(mac, cacheAttributes);
     return resultIP;   
 }

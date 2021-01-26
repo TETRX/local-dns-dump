@@ -11,7 +11,7 @@ void BlockingQueue<T>::push(const T& value) {
 template <typename T>
 T BlockingQueue<T>::pop() {
     std::unique_lock<std::mutex> lock(mutex);
-    condition.wait(lock, [=]{ return !queue.empty(); });
+    condition.wait(lock, [=, this]{ return !queue.empty(); });
     T value(std::move(queue.front()));
     queue.pop();
     return value;

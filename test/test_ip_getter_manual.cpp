@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <map>
 #include <future>
+#include "../config/DnsMapUser.h"
 
 #define USE_ARPING 0
 
@@ -27,7 +28,8 @@ int main() {
     CrafterListener listener;
 #endif
     Replier replier(&listener);
-    IPGetter ipgetter(&requester, &replier, PREFIX, 3 * 1000);
+    DnsMapUser dnsMapUser;
+    IPGetter ipgetter(&requester, &replier, dnsMapUser, PREFIX, 3 * 1000);
     std::string my_ans = ipgetter.get_ip(std::string(MAC)); //testing mac
     std::cout << "IPGetter got: " << my_ans << std::endl;
 #if !USE_ARPING
