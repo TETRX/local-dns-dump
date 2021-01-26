@@ -34,7 +34,7 @@ void DnsMap::updateEntry(const std::string &key,
     if (updateMap) {
         this->mac_set.clear();
     }
-    std::string copyFileName = "copy" + filename;
+    std::string copyFileName = filename + "copy";
     createFile(copyFileName);
     std::ofstream copyFile;
     copyFile.open(copyFileName, std::ios_base::trunc);
@@ -45,6 +45,7 @@ void DnsMap::updateEntry(const std::string &key,
     bool entryUpdated = false; // indicate whether key creates new entry
 
     while (getline(configFile, line)) {
+        std::cout<<line<<"\n";
         auto first_character = line.find_first_not_of(' ');
         if (first_character == std::string::npos || line[first_character] == '/' || line[first_character] == '{') {
             copyFile << line << std::endl;
@@ -97,6 +98,7 @@ void DnsMap::updateEntry(const std::string &key,
 
 std::vector<std::string> DnsMap::getEntry(const std::string &key) {
     std::ifstream inputFile(filename);
+    std::cout<<inputFile.good()<<filename<<"\n";
     nlohmann::json j = nlohmann::json::parse(inputFile, nullptr, true, true);
     if (j.contains(key)) {
         return j[key];

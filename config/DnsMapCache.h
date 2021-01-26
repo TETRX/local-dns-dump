@@ -7,7 +7,7 @@
 
 class DnsMapCache {
 private:
-    const std::string filename = "DnsMapCache.config";
+    const std::string filename = "../config/DnsMapCache.config";
     DnsMap dnsMap;
     std::mutex m;
 public:
