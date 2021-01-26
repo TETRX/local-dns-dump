@@ -7,7 +7,7 @@
 #include "../lib/nlohmann/json.hpp"
 
 
-class configUtils {
+class DnsMap {
 private:
     std::string filename;
     std::unordered_set<std::string> mac_set;

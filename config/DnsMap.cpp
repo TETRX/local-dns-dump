@@ -1,9 +1,9 @@
 #include <fstream>
-#include "configUtils.h"
+#include "DnsMap.h"
 
 #define LINE_PADDING 4
 
-std::string configUtils::prettifyLine(std::string line, bool insertComma) {
+std::string DnsMap::prettifyLine(std::string line, bool insertComma) {
     line = line.substr(1); // remove first {
     line = line.substr(0, line.length() - 1); // remove last }
     line.insert(0, LINE_PADDING, ' '); // add extra padding
@@ -13,7 +13,7 @@ std::string configUtils::prettifyLine(std::string line, bool insertComma) {
     return line;
 }
 
-void configUtils::createFile(const std::string &name) {
+void DnsMap::createFile(const std::string &name) {
     if (std::ifstream(name)) { // check if file already exists
         return;
     }
@@ -21,15 +21,15 @@ void configUtils::createFile(const std::string &name) {
     file << "{\n}";
 }
 
-void configUtils::setFileName(const std::string &name) {
+void DnsMap::setFileName(const std::string &name) {
     this->filename = name;
 }
 
-void configUtils::updateMap() {
+void DnsMap::updateMap() {
     updateEntry("", {}, true);
 }
 
-void configUtils::updateEntry(const std::string &key,
+void DnsMap::updateEntry(const std::string &key,
                               const std::vector<std::string> &attr, bool updateMap) {
     if (updateMap) {
         this->mac_set.clear();
@@ -95,7 +95,7 @@ void configUtils::updateEntry(const std::string &key,
 }
 
 
-std::vector<std::string> configUtils::getEntry(const std::string &key) {
+std::vector<std::string> DnsMap::getEntry(const std::string &key) {
     std::ifstream inputFile(filename);
     nlohmann::json j = nlohmann::json::parse(inputFile, nullptr, true, true);
     if (j.contains(key)) {
@@ -105,7 +105,7 @@ std::vector<std::string> configUtils::getEntry(const std::string &key) {
     return {};
 }
 
-std::unordered_set<std::string> configUtils::entries() {
+std::unordered_set<std::string> DnsMap::entries() {
     updateMap();
     return this->mac_set;
 }

@@ -1,30 +1,30 @@
 #include <fstream>
 #include <thread>
-#include "configUtilsCache.h"
+#include "DnsMapCache.h"
 
-void configUtilsCache::updateEntry(const std::string &mac, const std::vector<std::string> &cacheAttributes) {
+void DnsMapCache::updateEntry(const std::string &mac, const std::vector<std::string> &cacheAttributes) {
     m.lock();
-    utils.updateEntry(mac, cacheAttributes);
+    dnsMap.updateEntry(mac, cacheAttributes);
     m.unlock();
 }
 
-std::vector<std::string> configUtilsCache::getIpAttributes(const std::string &mac) {
+std::vector<std::string> DnsMapCache::getIpAttributes(const std::string &mac) {
     m.lock();
-    auto entry = utils.getEntry(mac);
+    auto entry = dnsMap.getEntry(mac);
     m.unlock();
     return entry;
 }
 
-configUtilsCache::configUtilsCache() {
-    utils.setFileName(filename);
+DnsMapCache::DnsMapCache() {
+    dnsMap.setFileName(filename);
 }
 
-void configUtilsCache::synchronizeCacheWithUserConfig(configUtilsUser utilsUser) {
+void DnsMapCache::synchronizeCacheWithUserConfig(DnsMapUser dnsMapUser) {
     m.lock();
-    auto mac_set = utilsUser.entries();
+    auto mac_set = dnsMapUser.entries();
 
     std::string copyFileName = "copy" + filename;
-    configUtils::createFile(copyFileName);
+    DnsMap::createFile(copyFileName);
     std::ofstream copyFile;
     copyFile.open(copyFileName, std::ios_base::trunc);
 
