@@ -5,7 +5,7 @@
 
 class DnsMapUser {
 private:
-    const std::string filename = "DnsMapUser.config";
+    const std::string filename = "../config/DnsMapUser.config";
     DnsMap dnsMap;
 
 public:

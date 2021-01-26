@@ -23,7 +23,7 @@ void DnsMapCache::synchronizeCacheWithUserConfig(DnsMapUser dnsMapUser) {
     m.lock();
     auto mac_set = dnsMapUser.entries();
 
-    std::string copyFileName = "copy" + filename;
+    std::string copyFileName = filename + "copy";
     DnsMap::createFile(copyFileName);
     std::ofstream copyFile;
     copyFile.open(copyFileName, std::ios_base::trunc);

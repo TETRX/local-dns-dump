@@ -34,7 +34,7 @@ void DnsMap::updateEntry(const std::string &key,
     if (updateMap) {
         this->mac_set.clear();
     }
-    std::string copyFileName = "copy" + filename;
+    std::string copyFileName = filename + "copy";
     createFile(copyFileName);
     std::ofstream copyFile;
     copyFile.open(copyFileName, std::ios_base::trunc);
