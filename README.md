@@ -1,5 +1,9 @@
 ## Networking
 Jest to API dla całej reszty programu izolujące część sieciową. Odpowiada za logikę wysyłania i odbierania paczek arpingu z użyciem wielowątkowości. Na razie mamy szkielet programu, TODO jest jego przetestowanie.
+## Setup
+1. ```git clone https://github.com/TETRX/local-dns-dump.git```
+2. ```git submodule init```
+3. ```git submodule update```
 ## Usage
 Dla uruchomienia testu przykładowego:
 1. Uzupełnić stałe PREFIX (podsieć lokalna, w której będzie szukana maszyna o podanym MACu) i MAC w ``` networking/config.h ``` (ewentualnie też iface).
