@@ -35,5 +35,5 @@ int main() {
 #if !USE_ARPING
     Crafter::CleanCrafter();
 #endif
-    return 0;
+    exit(0);
 }

@@ -2,11 +2,8 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
-//#include <ratio>
 
 #define TIME_FORMAT "UTC: %Y-%m-%d %H:%M:%S"
-
-//using days = std::chrono::duration<long long, std::ratio<86400>>;
 
 bool TimeUtils::valid(std::string timestamp, int termOfValidityDays) {
     std::stringstream ss(timestamp);

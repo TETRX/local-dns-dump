@@ -21,6 +21,11 @@ std::string IPGetter::wait_for_promise(std::promise<std::string> &promise) {
 std::string IPGetter::get_ip(std::string mac) {
    std::cerr << "Request: MAC=" << mac << std::endl;
 
+   std::vector<std::string> cacheAttributes = cache.getIpAttributes(mac);
+   if (!cacheAttributes.empty() && TimeUtils::valid(cacheAttributes[1], 30)) {
+       return cacheAttributes[0];
+   }
+
    std::promise<std::string> result;
    std::pair<std::map<std::string, std::promise<std::string> *>::iterator, bool> entry;
    {
@@ -29,5 +34,8 @@ std::string IPGetter::get_ip(std::string mac) {
    }
    requester->request(local_network_ip_prefix + "*", mac);
    std::string resultIP = wait_for_promise(result);
+   cacheAttributes.push_back(resultIP);
+   cacheAttributes.push_back(TimeUtils::timeNow());
+   cache.updateEntry(mac, cacheAttributes);
    return resultIP;
 }

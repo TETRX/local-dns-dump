@@ -58,7 +58,8 @@ void DnsMapCache::synchronizeCacheWithUserConfig(DnsMapUser& dnsMapUser) {
     rename(copyFileName.c_str(), filename.c_str());
 
     for (const auto &entry: entries) {
-        updateEntry(entry.first, entry.second);
+        dnsMap.updateEntry(entry.first, entry.second);
+        //updateEntry(entry.first, entry.second);
     }
     m.unlock();
 }
