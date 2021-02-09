@@ -1,5 +1,7 @@
 #pragma once
+#include "../config/DnsMapUserSettings.h"
 
-const std::string iface = "enp0s3";
-const std::string PREFIX = "10.0.2.";
-const std::string MAC = "52:54:00:12:35:02";
+
+const std::string iface = DnsMapUserSettings().get_setting(std::string("iface"));
+const std::string PREFIX = DnsMapUserSettings().get_setting(std::string("prefix"));
+const std::string MAC = "54:e0:19:62:e0:05";
