@@ -2,7 +2,7 @@ CONFIG=./config
 CACHE_LOC=/var/cache/local_dns
 CONFIG_LOC=/etc/local_dns
 PROGRAM_LOC=/usr/local/local_dns
-UNIT_FILE_LOC=/etc/systemd/system/
+UNIT_FILE_LOC=/etc/systemd/system
 
 all: 
 	cd networking; make libcrafter; make get_ip;
