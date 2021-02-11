@@ -1,5 +1,6 @@
+### NIEAKTUALNE!!! TODO: UAKTUALNIĆ
 ### 1. Kompilacja i ustawienie programu
-TODO. Załóżmy, że po tym stopniu mamy executable o nazwie local_dns i zdefiniowaliśmy wartość IP
+TODO. Załóżmy, że po tym stopniu mamy executable o nazwie local_dns 
 ### 2. Dodanie lokalnego serwera do listy serwerów DNS
 Aby nasz program działał potrzebujemy przekazać systemowi informację o tym gdzie znajduje się ten serwer. Aby zrobić to w sposób zgodny z dobrą praktyką użyjemy [openresolv](https://wiki.archlinux.org/index.php/Openresolv) (być może da się zrobić ten krok z pominięciem tej aplikacji).
 Jeżeli nie masz zainstalowanego openresolv, zainstaluj go:
@@ -12,7 +13,7 @@ Do /etc/resovconf.conf dodaj linijki
 
 ```
 resolv_conf_local_only=NO
-name_servers=IP
+name_servers=127.0.0.1
 ```
 (w przypadku gdy chcesz mieć więcej niż jeden name_server, postępuj zgodnie z https://wiki.archlinux.org/index.php/Openresolv#Defining_multiple_values_for_options).
 Uruchom:
@@ -25,7 +26,7 @@ W pliku /etc/resolv.conf powinna być linia
 ```
 Jak i:
 ```sh
-nameserver IP
+nameserver 127.0.0.1
 ```
 W tym momencie jeżeli uruchomialibyśmy ręcznie nasz serwer, powinien on działać. Aby nie musieć tego robić potrzebujemy jeszcze kilku kroków
 

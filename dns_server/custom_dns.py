@@ -6,6 +6,18 @@ from threading import Lock
 import fnmatch
 
 
+def get_nameserv():
+    DEFAULT_IP="8.8.8.4"
+    RESOLV_CONF="/etc/resolv.conf"
+    nameserver_indicator="nameserver "
+    with open(RESOLV_CONF,"r") as resolv_conf:
+        for line in resolv_conf:
+            if line.startswith(nameserver_indicator):
+                nameserver_ip=line[len(nameserver_indicator):-1]
+                if not nameserver_ip.startswith("127"): #can't use local ones unfortunately
+                    return nameserver_ip
+    return DEFAULT_IP
+
 class CustomResolver(object):
     lock = Lock()
 
@@ -69,7 +81,7 @@ if __name__ == '__main__':
     p.add_argument("--address", "-a", default="",
                    metavar="<address>",
                    help="Local proxy listen address (default:all)")
-    p.add_argument("--upstream", "-u", default="8.8.8.8:53",
+    p.add_argument("--upstream", "-u", default=None,
                    metavar="<dns server:port>",
                    help="Upstream DNS server:port (default:8.8.8.8:53)")
     p.add_argument("--tcp", action='store_true', default=False,
@@ -82,6 +94,11 @@ if __name__ == '__main__':
                    help="local-dns domain name (default:localdns)")
 
     args = p.parse_args()
+
+    if args.upstream==None:
+        args.upstream=get_nameserv()+":53"
+
+    print(args.upstream)
 
     args.dns, _, args.dns_port = args.upstream.partition(':')
     args.dns_port = int(args.dns_port or 53)

@@ -1,12 +1,15 @@
 #pragma once
 
-#include <iostream>
 #include <string>
 #include "DnsMap.h"
 
 class DnsMapUserSettings {
 private:
-    const std::string filename = "../config/DnsMapUserSettings.config";
+    #if GLOBAL
+        const std::string filename = "/etc/local_dns/DnsMapUserSettings.config";
+    #else
+        const std::string filename = "../config/DnsMapUserSettings.config";
+    #endif
     DnsMap dnsMap;
 
 public:

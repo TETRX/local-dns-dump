@@ -1,13 +1,16 @@
 #pragma once
 
-#include <iostream>
 #include <mutex>
 #include "DnsMap.h"
 #include "DnsMapUser.h"
 
 class DnsMapCache {
 private:
-    const std::string filename = "../config/DnsMapCache.config";
+    #if GLOBAL
+        const std::string filename = "/var/cache/local_dns/DnsMapCache.config";
+    #else
+        const std::string filename = "../config/DnsMapCache.config";
+    #endif
     DnsMap dnsMap;
     std::mutex m;
 public:

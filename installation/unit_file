@@ -3,7 +3,7 @@ Description=Local dns service, defines a mapping between user defined addresses 
 
 [Service]
 Type=simple
-ExecStart=sudo path_to_exec
+ExecStart=cd /usr/local/localdns && sudo python3 -m custom_dns
 
 [Install]
 WantedBy=default.target
