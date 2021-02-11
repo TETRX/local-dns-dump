@@ -20,3 +20,5 @@ install:
 	mkdir -p $(PROGRAM_LOC)
 	cp dns_server/get_ip.x $(PROGRAM_LOC)
 	cp dns_server/custom_dns.py $(PROGRAM_LOC)
+	mkdir -p $(UNIT_FILE_LOC)
+	cp installation/unit_file $(UNIT_FILE_LOC)/local-dns.service
