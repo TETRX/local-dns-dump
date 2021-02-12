@@ -12,13 +12,13 @@ clean:
 	
 
 install: 
-	mkdir -p $(CACHE_LOC)
-	mkdir -p $(CONFIG_LOC)
-	cp $(CONFIG)/DnsMapCache.config $(CACHE_LOC)
-	cp $(CONFIG)/DnsMapUserSettings.config $(CONFIG_LOC)
-	cp $(CONFIG)/DnsMapUser.config $(CONFIG_LOC)
-	mkdir -p $(PROGRAM_LOC)
-	cp dns_server/get_ip.x $(PROGRAM_LOC)
-	cp dns_server/custom_dns.py $(PROGRAM_LOC)
-	mkdir -p $(UNIT_FILE_LOC)
-	cp installation/unit_file $(UNIT_FILE_LOC)/local-dns.service
+	mkdir -p $(DESTDIR)/$(CACHE_LOC)
+	mkdir -p $(DESTDIR)/$(CONFIG_LOC)
+	cp $(CONFIG)/DnsMapCache.config $(DESTDIR)/$(CACHE_LOC)
+	cp $(CONFIG)/DnsMapUserSettings.config $(DESTDIR)/$(CONFIG_LOC)
+	cp $(CONFIG)/DnsMapUser.config $(DESTDIR)/$(CONFIG_LOC)
+	mkdir -p $(DESTDIR)/$(PROGRAM_LOC)
+	cp dns_server/get_ip.x $(DESTDIR)/$(PROGRAM_LOC)
+	cp dns_server/custom_dns.py $(DESTDIR)/$(PROGRAM_LOC)
+	mkdir -p $(DESTDIR)/$(UNIT_FILE_LOC)
+	cp installation/unit_file $(DESTDIR)/$(UNIT_FILE_LOC)/local-dns.service
