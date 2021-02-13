@@ -13,9 +13,8 @@ md5sums=('SKIP')
 
 
 build() {
-	pwd
 	cd "local-dns-dump"
-	make
+	make local_dns
 }
 
 package() {
