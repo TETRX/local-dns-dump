@@ -22,7 +22,7 @@ std::string IPGetter::get_ip(std::string mac) {
    std::cerr << "Request: MAC=" << mac << std::endl;
 
    std::vector<std::string> cacheAttributes = cache.getIpAttributes(mac);
-   if (!cacheAttributes.empty() && TimeUtils::valid(cacheAttributes[1], 30)) {
+   if (!cacheAttributes.empty() && TimeUtils::valid(cacheAttributes[1], CACHE_TIMEOUT)) {
        return cacheAttributes[0];
    }
 
@@ -32,7 +32,7 @@ std::string IPGetter::get_ip(std::string mac) {
       std::lock_guard<std::mutex> guard(map_lock);
       entry = map->emplace(mac, &result);
    }
-   requester->request(local_network_ip_prefix + "*", mac);
+   requester->request(local_network_ip_mask, mac);
    std::string resultIP = wait_for_promise(result);
    cacheAttributes.push_back(resultIP);
    cacheAttributes.push_back(TimeUtils::timeNow());

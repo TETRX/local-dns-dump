@@ -1,7 +1,8 @@
 #pragma once
 #include "../config/DnsMapUserSettings.h"
+#include <string>
 
 
-const std::string iface = DnsMapUserSettings().get_setting(std::string("iface"));
-const std::string PREFIX = DnsMapUserSettings().get_setting(std::string("prefix"));
-const std::string MAC = "54:e0:19:62:e0:05";
+const std::string IFACE         = DnsMapUserSettings().get_setting(std::string("iface"));
+const std::string IP_MASK       = DnsMapUserSettings().get_setting(std::string("ip_mask"));
+const int         CACHE_TIMEOUT = std::stoi(DnsMapUserSettings().get_setting(std::string("cache_timeout")));

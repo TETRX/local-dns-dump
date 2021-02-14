@@ -35,7 +35,9 @@ clean:
 	rm -f $(TEST)/test_ip_getter_manual.o
 	rm -f $(CONFIG)/*.o
 	rm -f $(LIB)/*.o
+ifneq ("$(wildcard $(LIB_CRAFTER_SRC))","")
 	cd $(LIB_CRAFTER_SRC); make clean; cd $(PROJECT_DIR)/networking
+endif
 	rm -f $(DNS_SERVER)/*.x
 
 

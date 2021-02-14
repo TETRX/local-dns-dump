@@ -17,7 +17,7 @@ class CrafterRequester: public Requester
         void listen_for_requests();
     
 	public:
-		CrafterRequester();
+	CrafterRequester();
             
         virtual void request(std::string ip_mask, std::string mac_requested); 
 };
