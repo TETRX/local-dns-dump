@@ -1,1 +1,0 @@
-This directory should contain all kinds of testing programs (be it reproducable or not). Since for the moment we are not using any testing library all of them will have to contain a main() function.
