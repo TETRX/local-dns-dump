@@ -10,7 +10,8 @@
 #include "../networking/replier.h"
 
 
-const std::string MAC = "54:e0:19:62:e0:05";
+//const std::string MAC = "52:54:00:12:35:02";
+const std::string MAC = "52:e0:19:62:e0:05";
 
 int main() {
     Crafter::InitCrafter();
@@ -19,7 +20,7 @@ int main() {
     Replier replier(&listener);
     DnsMapUser dnsMapUser;
     IPGetter ipgetter(&requester, &replier, dnsMapUser, IP_MASK, 3 * 1000);
-    std::string my_ans = ipgetter.get_ip(std::string(MAC)); //testing mac
+    std::string my_ans = ipgetter.get_ip(MAC); //testing mac
     std::cout << "IPGetter got: " << my_ans << std::endl;
     Crafter::CleanCrafter();
     exit(0);

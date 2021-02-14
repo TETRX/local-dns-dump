@@ -4,17 +4,17 @@
 #include "crafter_requester.h"
 
 CrafterRequester::CrafterRequester() : Requester() {
-    myIP = Crafter::GetMyIP(iface);
+    myIP = Crafter::GetMyIP(IFACE);
     if (myIP.empty()) {
         std::cerr << "Local DNS error: invalid interface" << std::endl;
         exit(1);
     }
-    myMAC = Crafter::GetMyMAC(iface);
+    myMAC = Crafter::GetMyMAC(IFACE);
     if (myMAC.empty()) {
         std::cerr << "Local DNS error: invalid interface" << std::endl;
         exit(1);
     }
-            
+     
     ethernetHeaderTemplate.SetSourceMAC(myMAC);
     arpHeaderTemplate.SetOperation(Crafter::ARP::Request);
     arpHeaderTemplate.SetSenderIP(myIP);
@@ -31,6 +31,7 @@ void CrafterRequester::listen_for_requests() {
                 std::string mac = request.second;
                 this->ethernetHeaderTemplate.SetDestinationMAC(mac);
                 std::vector<std::string> net = Crafter::GetIPs(ipMask);
+                std::cout << net.size() << std::endl;
                 std::vector<Crafter::Packet*> packets;
                 for (auto ipAddr = net.begin(); ipAddr != net.end(); ipAddr++) {
                     this->arpHeaderTemplate.SetTargetIP(*ipAddr);
@@ -39,7 +40,7 @@ void CrafterRequester::listen_for_requests() {
                     packet->PushLayer(this->arpHeaderTemplate);
                     packets.push_back(packet);
                 }
-                Crafter::Send(packets.begin(), packets.end(), iface, 48);
+                Crafter::Send(packets.begin(), packets.end(), IFACE, 48);
                 Crafter::ClearContainer(packets);
         }
     }).detach();

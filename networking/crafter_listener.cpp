@@ -6,7 +6,8 @@ void packet_handler_wrapper(Crafter::Packet *packet, void *user) {
     This->packet_handler(packet);
 }
 
-CrafterListener::CrafterListener() : Listener(), sniffer(std::string("arp[7]=2"), IFACE, packet_handler_wrapper) {
+CrafterListener::CrafterListener() : Listener(), sniffer(std::string("arp[7]=2"), "", packet_handler_wrapper) {
+    sniffer.SetInterface(IFACE);
     sniffer.Spawn(-1, static_cast<void*>(this));
 }
 
