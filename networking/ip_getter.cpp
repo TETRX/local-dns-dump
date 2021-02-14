@@ -35,8 +35,8 @@ std::string IPGetter::get_ip(std::string mac) {
    requester->request(local_network_ip_mask, mac);
    std::string resultIP = wait_for_promise(result);
    if (resultIP.empty()) {
-       std::cout << "error: empty IP\n";
-       exit(1);
+       std::cerr << "error: empty IP" << std::endl;
+       //exit(1);
    } else {
        cacheAttributes.push_back(resultIP);
        cacheAttributes.push_back(TimeUtils::timeNow());
