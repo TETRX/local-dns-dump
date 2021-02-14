@@ -10,7 +10,6 @@
 #include "../networking/replier.h"
 
 
-//const std::string MAC = "52:54:00:12:35:02";
 const std::string MAC = "52:e0:19:62:e0:05";
 
 int main() {
