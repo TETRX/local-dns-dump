@@ -1,7 +1,7 @@
 #include "DnsMapUserSettings.h"
+#include "filepaths_config.h"
 
-
-DnsMapUserSettings::DnsMapUserSettings(): dnsMap(filename) {
+DnsMapUserSettings::DnsMapUserSettings(): dnsMap(SETTINGS_PATH) {
 
 }
 

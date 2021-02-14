@@ -12,6 +12,7 @@ CrafterListener::CrafterListener() : Listener(), sniffer(std::string("arp[7]=2")
 
 void CrafterListener::packet_handler(Crafter::Packet *packet) { 
     Crafter::ARP *arpLayer = packet->GetLayer<Crafter::ARP>();
+    std::cout << "her1\n";
     replies.push(make_pair(arpLayer->GetSenderMAC(), arpLayer->GetSenderIP()));
 }
 
