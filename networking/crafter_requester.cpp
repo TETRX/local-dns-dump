@@ -5,7 +5,15 @@
 
 CrafterRequester::CrafterRequester() : Requester() {
     myIP = Crafter::GetMyIP(iface);
+    if (myIP.empty()) {
+        std::cerr << "Local DNS error: invalid interface" << std::endl;
+        exit(1);
+    }
     myMAC = Crafter::GetMyMAC(iface);
+    if (myMAC.empty()) {
+        std::cerr << "Local DNS error: invalid interface" << std::endl;
+        exit(1);
+    }
             
     ethernetHeaderTemplate.SetSourceMAC(myMAC);
     arpHeaderTemplate.SetOperation(Crafter::ARP::Request);
