@@ -1,7 +1,7 @@
 # English version
 Polish below
 ## What is this?
-This project definess a wrapper on DNS resolution, allowing the user to define "fake" domain name addresses which map to mac addresses on a local network. DNS calls on these addresses then returns the IP address of the device with that mac.
+This project defines a wrapper on DNS resolution, allowing the user to define "fake" domain name addresses which map to mac addresses on a local network. DNS calls on these addresses then returns the IP address of the device with that mac.
 ## Where does this work?
 The project was intended for Arch Linux, but you might be able to get it to work on other Linux distributions.
 ## Usage
@@ -49,18 +49,18 @@ To configure the program open each of the files in /etc/local_dns/ and fill them
 ### Startup
 Installation defines a systemd process. For the project to work you need to start it up:
 ```sh
-sudo systemctl start local-dns.service
+$ sudo systemctl start local-dns.service
 ```
 And for it to start on startup of system:
 ```sh
-sudo systemctl enable local-dns.service
+$ sudo systemctl enable local-dns.service
 ```
 
 ## How does this work?
 ### DNS wrapping
 This project defines a custom DNS server on localhost that answers standard DNS queries by passing them to a real DNS server and acting as a proxy to that server. When it receives a DNS name ending with .localdns it answers with the IP assigned to the mac address defined in /etc/local_dns/DnsMapUser.config
 ### Getting the IP of a MAC address
-TODO
+The server sends one ARP ping packet to every single IP on the subnet specified by the user, concurrently. Another thread is constantly listening for the reply packets, hence if that MAC is present on the subnet, eventually we will receive an answer from the target IP. Additionally, the answers are cached consistently so that we can just retrieve the IP from it if the actual ARP pings were executed relatively recently ("relatively" is configured by the user, default is 30 days).
 
 # Polish version
 ## Co to jest?
@@ -77,21 +77,21 @@ $ yay -S localdns-git
 ### Ustawienia
 Aby wkomponować nasz projekt w DNS na linuksie trzeba dodać localhosta do listy serwerow DNS. Pokazujemy jedną opcję jak to zrobić.
 
-Aby to zrboić zgodnie z dobrą praktyką uzyjemy [openresolv](https://wiki.archlinux.org/index.php/Openresolv).
+Aby to zrobić zgodnie z dobrą praktyką użyjemy [openresolv](https://wiki.archlinux.org/index.php/Openresolv).
 
 Zainstaluj go przez:
 ```sh
 $ sudo pacman -S openresolv
 ```
 
-Jeżeli chcesz użyć innego programu(na przykład NeetworkManager), który definiuje dynamicznie dostępne serwery DNSu zobacz [wiki openresolv](https://wiki.archlinux.org/index.php/Openresolv#Users).
+Jeżeli chcesz użyć innego programu (na przykład NetworkManager), który definiuje dynamicznie dostępne serwery DNSu, zobacz [wiki openresolv](https://wiki.archlinux.org/index.php/Openresolv#Users).
 
 Dopisz do /etc/resolv.conf:
 ```
 resolv_conf_local_only=NO
 name_servers=127.0.0.1
 ```
-(Jeżeli chcesz zakodować więcej niż jeden statyczny serwer DNS zobacz [to wiki](https://wiki.archlinux.org/index.php/Openresolv#Defining_multiple_values_for_options)).
+(Jeżeli chcesz zakodować więcej niż jeden statyczny serwer DNS, zobacz [to wiki](https://wiki.archlinux.org/index.php/Openresolv#Defining_multiple_values_for_options)).
 
 Uruchom:
 ```sh
@@ -108,20 +108,20 @@ nameserver 127.0.0.1
 ```
 
 ### Konfiguracja
-Aby zkofigurować localdns otwórz wszystkie pliki w /etc/local_dns/ i wypełnij je zgodnie z instrukcjami.
+Aby zkonfigurować localdns otwórz wszystkie pliki w /etc/local_dns/ i wypełnij je zgodnie z instrukcjami.
 
 ### Uruchomienie
 Po instalacji zdefiniowany zostaje proces systemowy. Uruchom go:
 ```sh
-sudo systemctl start local-dns.service
+$ sudo systemctl start local-dns.service
 ```
 Aby startował razem z systemem, uruchom:
 ```sh
-sudo systemctl enable local-dns.service
+$ sudo systemctl enable local-dns.service
 ```
 
 ## Jak to działa?
 ### DNS na linuksie
 Definiujemy własny server DNS działający na localhoscie, który odpowiada na standardowe query DNSowe jako proxy do prawdziwego serwera. Na query z adresami zakończonymi .localdns, odpowiada zgodnie z zawartoscią /etc/local_dns/DnsMapUser.config.
 ### Uzyskiwanie IP z adresu MAC
-TODO
+Serwer wysyła jeden ARP ping pakiet do każdego IP w podsieci wybranej przez użytkownika, równolegle. Inny wątek ciągle słucha pakietów przychodzących, więc jeśli poszukiwany MAC jest w podsieci, dostaniemy odpowiedź od odpowiedniego IP. Dodatkowo, odpowiedzie są zapisywane w cache. Wówczas wyciągamy IP z tego cache jeśli prawdziwe ARP pingi były wykonane relatywnie niedawno ("relatywnie" jest konfigurowane przez użytkownika, domyślnie 30 dni).
