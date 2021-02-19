@@ -4,6 +4,13 @@
 
 class DnsMapUser {
 private:
+
+
+    #if GLOBAL
+        const std::string filename = "/etc/local_dns/DnsMapUser.config";
+    #else
+        const std::string filename = "../config/DnsMapUser.config";
+    #endif
     DnsMap dnsMap;
 
 public:

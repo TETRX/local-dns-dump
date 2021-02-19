@@ -23,7 +23,7 @@ get_ip: $(NETWORKING)/ip_getter.global.o $(NETWORKING)/crafter_requester.global.
 	g++ -DGLOBAL=1 -std=c++20 -c $^ -o $@
 
 %.o : %.cpp
-	g++ -std=c++20 -c $^ -o $@
+	g++ -DGLOBAL=0 -std=c++20 -c $^ -o $@
 
 libcrafter:
 	cd $(LIB_CRAFTER_SRC); ./autogen.sh; make; sudo make install; sudo cp .libs/libcrafter.so /usr/lib; sudo ldconfig; cd $(PROJECT_DIR)/networking

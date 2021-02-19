@@ -1,7 +1,6 @@
 #include <fstream>
 #include <thread>
 #include "DnsMapCache.h"
-#include "filepaths_config.h"
 
 void DnsMapCache::updateEntry(const std::string &mac, const std::vector<std::string> &cacheAttributes) {
     m.lock();
@@ -16,14 +15,13 @@ std::vector<std::string> DnsMapCache::getIpAttributes(const std::string &mac) {
     return entry;
 }
 
-DnsMapCache::DnsMapCache() : dnsMap(CACHE_PATH) {
+DnsMapCache::DnsMapCache() : dnsMap(filename) {
 }
 
 void DnsMapCache::synchronizeCacheWithUserConfig(DnsMapUser& dnsMapUser) {
-    const std::string filename = CACHE_PATH;
     m.lock();
     auto mac_set = dnsMapUser.entries();
-
+    const char* filename_char = filename.c_str();
     std::string copyFileName = filename + "copy";
     DnsMap::createFile(copyFileName);
     std::ofstream copyFile;
@@ -56,8 +54,8 @@ void DnsMapCache::synchronizeCacheWithUserConfig(DnsMapUser& dnsMapUser) {
             entries.emplace_back(e.key(), attributes);
         }
     }
-    remove(CACHE_PATH);
-    rename(copyFileName.c_str(), CACHE_PATH);
+    remove(filename_char);
+    rename(copyFileName.c_str(), filename_char);
 
     for (const auto &entry: entries) {
         dnsMap.updateEntry(entry.first, entry.second);

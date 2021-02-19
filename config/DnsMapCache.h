@@ -6,8 +6,13 @@
 
 class DnsMapCache {
 private:
-    DnsMap dnsMap;
     std::mutex m;
+    #if GLOBAL
+        const std::string filename = "/var/cache/local_dns/DnsMapCache.config";
+    #else
+        const std::string filename = "../config/DnsMapCache.config";
+    #endif
+    DnsMap dnsMap;
 public:
     DnsMapCache();
 

@@ -1,5 +1,4 @@
 #include "DnsMapUser.h"
-#include "filepaths_config.h"
 
 void DnsMapUser::updateEntry(const std::string &dns_name, const std::string &mac) {
     dnsMap.updateEntry(dns_name, {mac});
@@ -13,7 +12,7 @@ std::string DnsMapUser::getMacFromDnsName(const std::string &dns_name) {
     return attributes[0];
 }
 
-DnsMapUser::DnsMapUser() : dnsMap(MAP_PATH) {
+DnsMapUser::DnsMapUser() : dnsMap(filename) {
 }
 
 std::unordered_set<std::string> DnsMapUser::entries() {
