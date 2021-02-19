@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
       exit(1);
    }
 
-   IPGetter ipgetter(&requester, &replier, dnsMapUser, PREFIX, 3 * 1000);
+   IPGetter ipgetter(&requester, &replier, dnsMapUser, IP_MASK, 3 * 1000);
    std::string ip_addr = ipgetter.get_ip(mac);
 
    if (ip_addr == "") {
