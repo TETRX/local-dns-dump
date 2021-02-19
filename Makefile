@@ -23,7 +23,7 @@ get_ip: $(NETWORKING)/ip_getter.global.o $(NETWORKING)/crafter_requester.global.
 	g++ -DGLOBAL=1 -std=c++20 -c $^ -o $@
 
 %.o : %.cpp
-	g++ -DGLOBAL=0 -std=c++20 -c $^ -o $@
+	g++ -std=c++20 -c $^ -o $@
 
 libcrafter:
 	cd $(LIB_CRAFTER_SRC); ./autogen.sh; make; sudo make install; sudo cp .libs/libcrafter.so /usr/lib; sudo ldconfig; cd $(PROJECT_DIR)/networking
@@ -45,13 +45,13 @@ local_dns: libcrafter get_ip
 
 
 install: 
-	mkdir -p $(DESTDIR)/$(CACHE_LOC)
-	mkdir -p $(DESTDIR)/$(CONFIG_LOC)
-	cp $(CONFIG)/DnsMapCache.config $(DESTDIR)/$(CACHE_LOC)
-	cp $(CONFIG)/DnsMapUserSettings.config $(DESTDIR)/$(CONFIG_LOC)
-	cp $(CONFIG)/DnsMapUser.config $(DESTDIR)/$(CONFIG_LOC)
-	mkdir -p $(DESTDIR)/$(PROGRAM_LOC)
+	mkdir -p $(DESTDIR)$(CACHE_LOC)
+	mkdir -p $(DESTDIR)$(CONFIG_LOC)
+	cp $(CONFIG)/DnsMapCache.config $(DESTDIR)$(CACHE_LOC)
+	cp $(CONFIG)/DnsMapUserSettings.config $(DESTDIR)$(CONFIG_LOC)
+	cp $(CONFIG)/DnsMapUser.config $(DESTDIR)$(CONFIG_LOC)
+	mkdir -p $(DESTDIR)$(PROGRAM_LOC)
 	cp dns_server/get_ip.x $(DESTDIR)/$(PROGRAM_LOC)
 	cp dns_server/custom_dns.py $(DESTDIR)/$(PROGRAM_LOC)
-	mkdir -p $(DESTDIR)/$(UNIT_FILE_LOC)
-	cp installation/unit_file $(DESTDIR)/$(UNIT_FILE_LOC)/local-dns.service
+	mkdir -p $(DESTDIR)$(UNIT_FILE_LOC)
+	cp installation/unit_file $(DESTDIR)$(UNIT_FILE_LOC)/local-dns.service
