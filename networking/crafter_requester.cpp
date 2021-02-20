@@ -31,7 +31,6 @@ void CrafterRequester::listen_for_requests() {
                 std::string mac = request.second;
                 this->ethernetHeaderTemplate.SetDestinationMAC(mac);
                 std::vector<std::string> net = Crafter::GetIPs(ipMask);
-                std::cout << net.size() << std::endl;
                 std::vector<Crafter::Packet*> packets;
                 for (auto ipAddr = net.begin(); ipAddr != net.end(); ipAddr++) {
                     this->arpHeaderTemplate.SetTargetIP(*ipAddr);

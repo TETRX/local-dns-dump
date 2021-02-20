@@ -11,7 +11,7 @@ LIB = $(PROJECT_DIR)/lib
 LIB_CRAFTER_SRC = $(PROJECT_DIR)/libcrafter/libcrafter
 DNS_SERVER=$(PROJECT_DIR)/dns_server
 NETWORKING=$(PROJECT_DIR)/networking
-
+HOSTS=$(PROJECT_DIR)/hosts
 
 test: libcrafter $(TEST)/test_ip_getter_manual.o $(NETWORKING)/ip_getter.o $(NETWORKING)/crafter_requester.o $(NETWORKING)/crafter_listener.o $(NETWORKING)/replier.o $(CONFIG)/DnsMap.o $(CONFIG)/DnsMapCache.o $(CONFIG)/DnsMapUser.o $(LIB)/time_utils.o $(CONFIG)/DnsMapUserSettings.o
 	g++ -std=c++20 -o $(TEST)/test_ip_getter_manual.x $(TEST)/test_ip_getter_manual.o $(NETWORKING)/ip_getter.o $(NETWORKING)/crafter_requester.o $(NETWORKING)/crafter_listener.o $(NETWORKING)/replier.o $(CONFIG)/DnsMap.o $(CONFIG)/DnsMapCache.o $(CONFIG)/DnsMapUser.o $(LIB)/time_utils.o $(CONFIG)/DnsMapUserSettings.o -I../libcrafter/libcrafter -pthread -L. -lcrafter -lcap -lnsl -lrt -lpcap -lm -lresolv
@@ -51,7 +51,10 @@ install:
 	cp $(CONFIG)/DnsMapUserSettings.config $(DESTDIR)$(CONFIG_LOC)
 	cp $(CONFIG)/DnsMapUser.config $(DESTDIR)$(CONFIG_LOC)
 	mkdir -p $(DESTDIR)$(PROGRAM_LOC)
-	cp dns_server/get_ip.x $(DESTDIR)/$(PROGRAM_LOC)
-	cp dns_server/custom_dns.py $(DESTDIR)/$(PROGRAM_LOC)
+	cp $(DNS_SERVER)/get_ip.x $(DESTDIR)/$(PROGRAM_LOC)
+	cp $(DNS_SERVER)/custom_dns.py $(DESTDIR)/$(PROGRAM_LOC)
+	cp $(HOSTS)/hosts_daemon.py $(DESTDIR)/$(PROGRAM_LOC)
 	mkdir -p $(DESTDIR)$(UNIT_FILE_LOC)
 	cp installation/unit_file $(DESTDIR)$(UNIT_FILE_LOC)/local-dns.service
+	cp installation/unit_file_hosts $(DESTDIR)$(UNIT_FILE_LOC)/local-dns-hosts.service
+
