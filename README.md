@@ -11,6 +11,8 @@ To install the application on ArchLinux simply run:
 $ yay -S localdns-git
 ```
 ### Setup
+If you'd rather use the version that updates /etc/hosts you can skip this part.
+
 For the operating system to incorporate this into DNS resolution we need to set it up correctly. We provide one way to do so, you may be able to do it differently.
 
 First we need to add the server to the list of servers, to do so in accordance with good practice we'll need [openresolv](https://wiki.archlinux.org/index.php/Openresolv).
@@ -55,6 +57,7 @@ And for it to start on startup of system:
 ```sh
 $ sudo systemctl enable local-dns.service
 ```
+For the version updating /etc/hosts/ substitute local-dns with local-dns-hosts in the following commands.
 
 ## How does this work?
 ### DNS wrapping
@@ -75,6 +78,7 @@ Aby zainstalować aplikację użyj:
 $ yay -S localdns-git
 ```
 ### Ustawienia
+Ta część nie jest potrzebna jeśli chcesz używać wersji edytującej /etc/hosts.
 Aby wkomponować nasz projekt w DNS na linuksie trzeba dodać localhosta do listy serwerow DNS. Pokazujemy jedną opcję jak to zrobić.
 
 Aby to zrobić zgodnie z dobrą praktyką użyjemy [openresolv](https://wiki.archlinux.org/index.php/Openresolv).
@@ -119,6 +123,7 @@ Aby startował razem z systemem, uruchom:
 ```sh
 $ sudo systemctl enable local-dns.service
 ```
+Zamień local-dns na local-dns-hosts przy wersji edytującej /etc/hosts.
 
 ## Jak to działa?
 ### DNS na linuksie
