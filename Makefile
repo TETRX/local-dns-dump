@@ -14,16 +14,16 @@ NETWORKING=$(PROJECT_DIR)/networking
 HOSTS=$(PROJECT_DIR)/hosts
 
 test: libcrafter $(TEST)/test_ip_getter_manual.o $(NETWORKING)/ip_getter.o $(NETWORKING)/crafter_requester.o $(NETWORKING)/crafter_listener.o $(NETWORKING)/replier.o $(CONFIG)/DnsMap.o $(CONFIG)/DnsMapCache.o $(CONFIG)/DnsMapUser.o $(LIB)/time_utils.o $(CONFIG)/DnsMapUserSettings.o
-	g++ -std=c++20 -o $(TEST)/test_ip_getter_manual.x $(TEST)/test_ip_getter_manual.o $(NETWORKING)/ip_getter.o $(NETWORKING)/crafter_requester.o $(NETWORKING)/crafter_listener.o $(NETWORKING)/replier.o $(CONFIG)/DnsMap.o $(CONFIG)/DnsMapCache.o $(CONFIG)/DnsMapUser.o $(LIB)/time_utils.o $(CONFIG)/DnsMapUserSettings.o -I../libcrafter/libcrafter -pthread -L. -lcrafter -lcap -lnsl -lrt -lpcap -lm -lresolv
+	g++ -std=c++20 -I$(LIB_CRAFTER_SRC) -o $(TEST)/test_ip_getter_manual.x $(TEST)/test_ip_getter_manual.o $(NETWORKING)/ip_getter.o $(NETWORKING)/crafter_requester.o $(NETWORKING)/crafter_listener.o $(NETWORKING)/replier.o $(CONFIG)/DnsMap.o $(CONFIG)/DnsMapCache.o $(CONFIG)/DnsMapUser.o $(LIB)/time_utils.o $(CONFIG)/DnsMapUserSettings.o -pthread -L. -lcrafter -lcap -lnsl -lrt -lpcap -lm -lresolv
 
 get_ip: $(NETWORKING)/ip_getter.global.o $(NETWORKING)/crafter_requester.global.o $(NETWORKING)/crafter_listener.global.o $(NETWORKING)/replier.global.o $(CONFIG)/DnsMap.global.o $(CONFIG)/DnsMapCache.global.o $(CONFIG)/DnsMapUser.global.o $(CONFIG)/DnsMapUserSettings.global.o $(LIB)/time_utils.o
-	g++ -std=c++20 -DGLOBAL=1 $(DNS_SERVER)/get_ip.cpp -o $(DNS_SERVER)/get_ip.x $(NETWORKING)/ip_getter.global.o $(NETWORKING)/crafter_requester.global.o $(NETWORKING)/crafter_listener.global.o $(NETWORKING)/replier.global.o $(CONFIG)/DnsMap.global.o $(CONFIG)/DnsMapCache.global.o $(CONFIG)/DnsMapUser.global.o $(CONFIG)/DnsMapUserSettings.global.o $(LIB)/time_utils.o -I../libcrafter/libcrafter -pthread -L.  -lcrafter -lcap -lnsl -lrt -lpcap -lm -lresolv
+	g++ -std=c++20 -I$(LIB_CRAFTER_SRC) -DGLOBAL=1 $(DNS_SERVER)/get_ip.cpp -o $(DNS_SERVER)/get_ip.x $(NETWORKING)/ip_getter.global.o $(NETWORKING)/crafter_requester.global.o $(NETWORKING)/crafter_listener.global.o $(NETWORKING)/replier.global.o $(CONFIG)/DnsMap.global.o $(CONFIG)/DnsMapCache.global.o $(CONFIG)/DnsMapUser.global.o $(CONFIG)/DnsMapUserSettings.global.o $(LIB)/time_utils.o -pthread -L.  -lcrafter -lcap -lnsl -lrt -lpcap -lm -lresolv
 
 %.global.o : %.cpp 
-	g++ -DGLOBAL=1 -std=c++20 -c $^ -o $@
+	g++ -DGLOBAL=1 -std=c++20 -I$(LIB_CRAFTER_SRC) -c $^ -o $@
 
 %.o : %.cpp
-	g++ -DGLOBAL=0 -std=c++20 -c $^ -o $@
+	g++ -DGLOBAL=0 -std=c++20 -I$(LIB_CRAFTER_SRC) -c $^ -o $@
 
 libcrafter:
 	cd $(LIB_CRAFTER_SRC); ./autogen.sh; make; sudo make install; sudo cp .libs/libcrafter.so /usr/lib; sudo ldconfig; cd $(PROJECT_DIR)/networking
