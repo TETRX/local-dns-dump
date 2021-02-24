@@ -26,6 +26,9 @@ get_ip: $(NETWORKING)/ip_getter.global.o $(NETWORKING)/crafter_requester.global.
 	g++ -DGLOBAL=0 -std=c++20 -I$(LIB_CRAFTER_SRC) -c $^ -o $@
 
 libcrafter:
+ifneq ("$(wildcard $(LIB_CRAFTER_SRC))","")
+	$(error ./libcrafter/libcrafter does not exist)
+endif
 	cd $(LIB_CRAFTER_SRC); ./autogen.sh; make; sudo make install; sudo cp .libs/libcrafter.so /usr/lib; sudo ldconfig; cd $(PROJECT_DIR)/networking
 
 clean:
