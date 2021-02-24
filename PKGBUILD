@@ -6,8 +6,8 @@ pkgdesc="With this package the user is able to define a wrapper around DNS resol
 arch=(x86_64)
 url="https://github.com/TETRX/local-dns-dump"
 license=('GPL')
-depends=('python>=3' 'python-dnslib', 'python-hosts>=1.0')
-makedepends=('git' 'make' 'gcc>=10', 'autoconf')
+depends=('python>=3' 'python-dnslib' 'python-hosts>=1.0')
+makedepends=('git' 'make' 'gcc>=10' 'autoconf')
 source=("git+$url#branch=master")
 md5sums=('SKIP')
 
