@@ -31,10 +31,9 @@ get_ip: $(NETWORKING)/ip_getter.global.o $(NETWORKING)/crafter_requester.global.
 	g++ -DGLOBAL=0 -std=c++20 -I$(LIB_CRAFTER_SRC) -c $^ -o $@
 
 libcrafter:
-ifeq ("$(wildcard $(LIB_CRAFTER_SRC))","")
-	$(error ./libcrafter/libcrafter does not exist)
-endif
-	cd $(LIB_CRAFTER_SRC) && ./autogen.sh && make && make install
+	./$(LIB_CRAFTER_SRC)/autogen.sh
+	make -C $(LIB_CRAFTER_SRC)
+	make -C $(LIB_CRAFTER_SRC) install
 
 clean:
 	rm -f $(TEST)/*.x
@@ -44,14 +43,13 @@ clean:
 	rm -f $(CONFIG)/*.o
 	rm -f $(LIB)/*.o
 ifneq ("$(wildcard $(LIB_CRAFTER_SRC))","")
-	cd $(LIB_CRAFTER_SRC); make clean; cd $(PROJECT_DIR)/networking
+	make -C $(LIB_CRAFTER_SRC) clean
 endif
 	rm -f $(DNS_SERVER)/*.x
 
 
-local_dns:
-	make -B libcrafter
-	make get_ip
+local_dns: libcrafter get_ip
+
 
 
 install: 
