@@ -44,7 +44,8 @@ endif
 	rm -f $(DNS_SERVER)/*.x
 
 
-local_dns: libcrafter get_ip
+local_dns: get_ip
+	make libcrafter
 
 
 install: 
