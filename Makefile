@@ -32,8 +32,7 @@ get_ip: $(NETWORKING)/ip_getter.global.o $(NETWORKING)/crafter_requester.global.
 
 libcrafter:
 	$(LIB_CRAFTER_SRC)/autogen.sh
-	make -C $(LIB_CRAFTER_SRC)
-	make -C $(LIB_CRAFTER_SRC) install
+	make -C $(LIB_CRAFTER_SRC) all
 
 clean:
 	rm -f $(TEST)/*.x
