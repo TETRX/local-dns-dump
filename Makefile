@@ -45,7 +45,7 @@ endif
 
 
 local_dns:
-	make libcrafter
+	make -B libcrafter
 	make get_ip
 
 
