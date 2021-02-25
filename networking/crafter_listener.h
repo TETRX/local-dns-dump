@@ -1,7 +1,7 @@
 #include "listener.h"
 #include "config.h"
 #include <string>
-#include <crafter.h>
+#include "crafter.h"
 #include "../lib/blocking_queue.h"
 
 class CrafterListener: public Listener
