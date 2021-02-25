@@ -34,11 +34,7 @@ libcrafter:
 ifeq ("$(wildcard $(LIB_CRAFTER_SRC))","")
 	$(error ./libcrafter/libcrafter does not exist)
 endif
-	cd $(LIB_CRAFTER_SRC)
-	./autogen.sh
-	make
-	make install
-	cd $(PROJECT_DIR)/networking
+	cd $(LIB_CRAFTER_SRC) && ./autogen.sh && make && make install
 
 clean:
 	rm -f $(TEST)/*.x
