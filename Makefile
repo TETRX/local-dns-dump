@@ -31,7 +31,7 @@ get_ip: $(NETWORKING)/ip_getter.global.o $(NETWORKING)/crafter_requester.global.
 	g++ -DGLOBAL=0 -std=c++20 -I$(LIB_CRAFTER_SRC) -c $^ -o $@
 
 libcrafter:
-	$(LIB_CRAFTER_SRC)/autogen.sh
+	cd $(LIB_CRAFTER_SRC) && ./autogen.sh
 	make -C $(LIB_CRAFTER_SRC) all
 
 clean:
