@@ -34,8 +34,8 @@ get_ip: $(NETWORKING)/ip_getter.global.o $(NETWORKING)/crafter_requester.global.
 libcrafter:
 	cd $(LIB_CRAFTER_SRC) && ./autogen.sh
 	make -C $(LIB_CRAFTER_SRC) all
-	make -C $(LIB_CRAFTER_SRC) DESTDIR=$(SLIB) install
-	ldconfig -n $(SLIB)
+	make -C $(LIB_CRAFTER_SRC) DESTDIR=$(DESTDIR) install
+	ldconfig -n $(DESTDIR)
 
 clean:
 	rm -f $(TEST)/*.x

@@ -16,7 +16,7 @@ build() {
 	cd "local-dns-dump"
 	git submodule init
 	git submodule update
-	make local_dns
+	make DESTDIR="$pkgdir" local_dns
 }
 
 package() {
