@@ -1,7 +1,7 @@
 #include "requester.h"
 #include "config.h"
 #include "../lib/blocking_queue.h"
-#include <crafter.h>
+#include "crafter.h"
 
 class CrafterRequester: public Requester
 {  
